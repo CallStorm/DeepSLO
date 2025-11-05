@@ -48,6 +48,7 @@ class ProjectOut(BaseModel):
 
 
 class AIModelBase(BaseModel):
+    name: Optional[str] = None
     provider: str
     model: str
     api_key: Optional[str] = None
@@ -60,6 +61,7 @@ class AIModelCreate(AIModelBase):
 
 
 class AIModelUpdate(BaseModel):
+    name: Optional[str] = None
     provider: Optional[str] = None
     model: Optional[str] = None
     api_key: Optional[str] = None

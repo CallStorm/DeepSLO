@@ -28,6 +28,7 @@ class Project(SQLModel, table=True):
 
 class AIModel(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    name: Optional[str] = None
     provider: str
     model: str
     api_key: Optional[str] = None

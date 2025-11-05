@@ -15,12 +15,26 @@
     </a-table>
 
     <a-modal v-model:open="open" title="AI 模型" @ok="submit">
-      <a-form :model="form">
-        <a-form-item label="供应商"><a-input v-model:value="form.provider" placeholder="Volcengine/DeepSeek" /></a-form-item>
-        <a-form-item label="模型"><a-input v-model:value="form.model" placeholder="模型名" /></a-form-item>
-        <a-form-item label="API Key"><a-input v-model:value="form.api_key" /></a-form-item>
-        <a-form-item label="Base URL"><a-input v-model:value="form.base_url" /></a-form-item>
-        <a-form-item label="默认"><a-switch v-model:checked="form.is_default" /></a-form-item>
+      <a-form :model="form" layout="vertical">
+        <a-form-item label="模型名称">
+          <a-input v-model:value="form.name" placeholder="给该模型起一个别名，如：默认对话模型" />
+        </a-form-item>
+        <a-form-item label="供应商">
+          <a-select v-model:value="form.provider" placeholder="选择或输入供应商" :options="providerOptions" allowClear showSearch @change="onProviderChange" />
+        </a-form-item>
+        <a-form-item label="模型">
+          <a-select v-if="modelOptions.length" v-model:value="form.model" :options="modelOptions" placeholder="选择模型" allowClear showSearch />
+          <a-input v-else v-model:value="form.model" placeholder="输入模型名" />
+        </a-form-item>
+        <a-form-item label="API Key">
+          <a-input v-model:value="form.api_key" />
+        </a-form-item>
+        <a-form-item label="Base URL">
+          <a-input v-model:value="form.base_url" placeholder="https://..." />
+        </a-form-item>
+        <a-form-item label="默认">
+          <a-switch v-model:checked="form.is_default" />
+        </a-form-item>
       </a-form>
     </a-modal>
   </a-card>
@@ -32,10 +46,26 @@ import axios from 'axios'
 
 const items = ref([])
 const open = ref(false)
-const form = reactive({ provider: '', model: '', api_key: '', base_url: '', is_default: false })
+const form = reactive({ name: '', provider: '', model: '', api_key: '', base_url: '', is_default: false })
+
+// 预置供应商与模型
+const PRESETS = {
+  DeepSeek: {
+    base_url: 'https://api.deepseek.com',
+    models: ['deepseek-chat']
+  },
+  火山引擎: {
+    base_url: 'https://ark.cn-beijing.volces.com/api/v3',
+    models: ['doubao-seed-1-6-250615', 'deepseek-v3-250324']
+  }
+}
+
+const providerOptions = Object.keys(PRESETS).map(k => ({ label: k, value: k }))
+const modelOptions = ref([])
 
 const columns = [
   { title: 'ID', dataIndex: 'id' },
+  { title: '模型名称', dataIndex: 'name' },
   { title: '供应商', dataIndex: 'provider' },
   { title: '模型', dataIndex: 'model' },
   { title: '默认', dataIndex: 'is_default' },
@@ -48,7 +78,8 @@ async function load() {
 }
 
 function openCreate() {
-  Object.assign(form, { provider: '', model: '', api_key: '', base_url: '', is_default: false })
+  Object.assign(form, { name: '', provider: '', model: '', api_key: '', base_url: '', is_default: false })
+  modelOptions.value = []
   open.value = true
 }
 
@@ -56,6 +87,20 @@ async function submit() {
   await axios.post('/system/ai-models', form)
   open.value = false
   await load()
+}
+
+function onProviderChange(val) {
+  const preset = PRESETS[val]
+  if (preset) {
+    // 自动填充 Base URL 与模型下拉
+    form.base_url = preset.base_url
+    modelOptions.value = preset.models.map(m => ({ label: m, value: m }))
+    if (!preset.models.includes(form.model)) {
+      form.model = ''
+    }
+  } else {
+    modelOptions.value = []
+  }
 }
 
 async function setDefault(id) {
