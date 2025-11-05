@@ -3,7 +3,8 @@ import axios from 'axios'
 
 export const useProjectStore = defineStore('projects', {
   state: () => ({
-    projects: []
+    projects: [],
+    selectedProjectId: null
   }),
   actions: {
     async fetchProjects() {
@@ -13,6 +14,9 @@ export const useProjectStore = defineStore('projects', {
     async syncProjects() {
       await axios.post('/system/projects/sync')
       await this.fetchProjects()
+    },
+    setSelectedProject(id) {
+      this.selectedProjectId = id
     }
   }
 })

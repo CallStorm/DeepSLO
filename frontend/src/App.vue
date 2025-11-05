@@ -6,23 +6,52 @@
         <appstore-outlined class="logo-icon" />
         <span v-if="!collapsed" class="logo-text">DeepSLO</span>
       </div>
-      <div class="project-switch">
-        <a-select v-model:value="selectedProject" style="width: 100%" :options="projectOptions" />
+      <div class="project-switch" :class="{ collapsed }">
+        <template v-if="!collapsed">
+          <a-select
+            v-model:value="projStore.selectedProjectId"
+            style="width: 100%"
+            :options="projectOptions"
+            show-search
+            :filter-option="filterProjectOption"
+            :allowClear="true"
+            placeholder="选择项目"
+          />
+        </template>
+        <template v-else>
+          <a-popover v-model:open="projectPopoverOpen" trigger="click" placement="right">
+            <template #content>
+              <a-select
+                v-model:value="projStore.selectedProjectId"
+                style="width: 220px"
+                :options="projectOptions"
+                show-search
+                :filter-option="filterProjectOption"
+                :allowClear="true"
+                placeholder="搜索并选择项目"
+                @change="() => projectPopoverOpen = false"
+              />
+            </template>
+            <a-button type="text" shape="circle" class="project-icon-btn">
+              <project-outlined />
+            </a-button>
+          </a-popover>
+        </template>
       </div>
         <a-menu theme="dark" mode="inline" :selectedKeys="[selectedKey]" @click="onMenu" :style="{ flex: 1, overflow: 'auto' }">
-        <a-menu-item key="probe">
+        <a-menu-item key="probe" :disabled="menuDisabled">
           <template #icon><dashboard-outlined /></template>
           拨测信息
         </a-menu-item>
-        <a-menu-item key="slo-screen">
+        <a-menu-item key="slo-screen" :disabled="menuDisabled">
           <template #icon><fund-outlined /></template>
           SLO大屏
         </a-menu-item>
-        <a-menu-item key="slo-analysis">
+        <a-menu-item key="slo-analysis" :disabled="menuDisabled">
           <template #icon><line-chart-outlined /></template>
           SLO分析
         </a-menu-item>
-        <a-menu-item key="slo-settings">
+        <a-menu-item key="slo-settings" :disabled="menuDisabled">
           <template #icon><setting-outlined /></template>
           SLO设置
         </a-menu-item>
@@ -151,12 +180,22 @@ const projStore = useProjectStore()
 
 const collapsed = ref(false)
 const selectedKey = ref('slo-screen')
-const selectedProject = ref(null)
+// 使用项目选择作为启用菜单的条件
+const menuDisabled = computed(() => !projStore.selectedProjectId)
 const userMenuOpen = ref(false)
 
 const me = computed(() => auth.user)
 const isAuthed = computed(() => auth.isAuthenticated)
 const projectOptions = computed(() => projStore.projects.map(p => ({ label: p.ms_name, value: p.id })))
+
+// 项目搜索过滤
+function filterProjectOption(input, option) {
+  const label = (option?.label ?? '').toString().toLowerCase()
+  return label.includes((input || '').toLowerCase())
+}
+
+// 折叠时通过图标打开项目选择气泡
+const projectPopoverOpen = ref(false)
 
 function onMenu({ key }) {
   selectedKey.value = key
@@ -223,6 +262,8 @@ function submitChangePwd() {
 .logo-icon { font-size: 20px; }
 .logo-text { font-size: 16px; }
 .project-switch { padding: 0 12px 12px; }
+.project-switch.collapsed { padding: 0 0 12px; display: flex; justify-content: center; }
+.project-icon-btn { color: #fff; opacity: 1; font-size: 18px; display: inline-flex; align-items: center; justify-content: center; }
 .user-footer { padding: 12px; color: #fff; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.15); }
 .user-footer-trigger { display: inline-flex; align-items: center; gap: 8px; color: inherit; }
 .user-left { display: inline-flex; align-items: center; gap: 8px; }
