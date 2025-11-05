@@ -3,7 +3,17 @@
     <a-space style="margin-bottom: 12px">
       <a-button type="primary" @click="openCreate">新增用户</a-button>
     </a-space>
-    <a-table :dataSource="users" :columns="columns" rowKey="id" />
+    <a-table :dataSource="users" :columns="columns" rowKey="id">
+      <template #bodyCell="{ column, record, text }">
+        <template v-if="column.dataIndex === 'is_admin'">{{ text ? '是' : '否' }}</template>
+        <template v-else-if="column.dataIndex === 'is_active'">
+          <a-switch :checked="record.is_active" @change="(checked) => toggleActive(record, checked)" />
+        </template>
+        <template v-else-if="column.key === 'actions'">
+          <a-button type="link" v-if="auth.user?.is_admin" @click="openEdit(record)">编辑</a-button>
+        </template>
+      </template>
+    </a-table>
 
     <a-modal v-model:open="modalOpen" title="用户" @ok="submit">
       <a-form :model="form">
@@ -20,11 +30,13 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { useAuthStore } from '../../stores/auth'
 import axios from 'axios'
 
 const users = ref([])
 const modalOpen = ref(false)
 const form = reactive({ id: null, name: '', username: '', email: '', password: '', is_admin: false, is_active: true })
+const auth = useAuthStore()
 
 const columns = [
   { title: 'ID', dataIndex: 'id' },
@@ -33,6 +45,7 @@ const columns = [
   { title: '邮箱', dataIndex: 'email' },
   { title: '管理员', dataIndex: 'is_admin' },
   { title: '启用', dataIndex: 'is_active' },
+  { title: '操作', key: 'actions' },
 ]
 
 async function load() {
@@ -43,6 +56,29 @@ async function load() {
 function openCreate() {
   Object.assign(form, { id: null, name: '', username: '', email: '', password: '', is_admin: false, is_active: true })
   modalOpen.value = true
+}
+
+function openEdit(record) {
+  Object.assign(form, {
+    id: record.id,
+    name: record.name,
+    username: record.username,
+    email: record.email,
+    password: '',
+    is_admin: record.is_admin,
+    is_active: record.is_active,
+  })
+  modalOpen.value = true
+}
+
+async function toggleActive(record, checked) {
+  const original = record.is_active
+  record.is_active = checked
+  try {
+    await axios.put(`/system/users/${record.id}`, { is_active: checked })
+  } catch (e) {
+    record.is_active = original
+  }
 }
 
 async function submit() {
