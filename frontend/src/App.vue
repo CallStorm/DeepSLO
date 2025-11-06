@@ -82,7 +82,7 @@
         </a-menu>
         <template #trigger>
           <div class="ant-layout-sider-trigger user-trigger" :style="{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 16px' }">
-            <a-dropdown :open="userMenuOpen" placement="top">
+            <a-dropdown v-model:open="userMenuOpen" trigger="click" placement="top">
               <a class="user-footer-trigger" @click.stop.prevent="toggleUserMenu">
                 <span class="user-left">
                   <user-outlined />
@@ -213,6 +213,7 @@ function onMenu({ key }) {
 }
 
 function onUserMenu({ key }) {
+  userMenuOpen.value = false
   if (key === 'about') {
     Modal.info({ title: '关于 DeepSLO', content: 'DeepSLO 前端界面' })
   } else if (key === 'help') {

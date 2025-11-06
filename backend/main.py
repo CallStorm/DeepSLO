@@ -6,6 +6,7 @@ from .routers import users as users_router
 from .routers import projects as projects_router
 from .routers import ai_models as ai_models_router
 from .routers import config as config_router
+from .routers import probe as probe_router
 from .bootstrap import ensure_admin_user, create_db_and_tables
 
 app = FastAPI(title="DeepSLO API", version="0.1.0")
@@ -30,6 +31,7 @@ app.include_router(users_router.router, prefix="/system/users", tags=["users"])
 app.include_router(projects_router.router, prefix="/system/projects", tags=["projects"]) 
 app.include_router(ai_models_router.router, prefix="/system/ai-models", tags=["ai-models"]) 
 app.include_router(config_router.router, prefix="/system/config", tags=["config"]) 
+app.include_router(probe_router.router, prefix="/probe", tags=["probe"]) 
 
 
 @app.get("/health")

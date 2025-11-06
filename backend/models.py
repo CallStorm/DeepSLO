@@ -44,3 +44,27 @@ class MSConfig(SQLModel, table=True):
     active: bool = True
 
 
+
+class ProbeConfig(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    project_ms_id: str = Field(index=True)
+    scenario_id: str = Field(index=True)
+    name: str = Field(sa_column=Column(String(255), nullable=False))
+    priority: Optional[str] = None
+    status: Optional[str] = None
+    step_total: Optional[int] = None
+    request_pass_rate: Optional[str] = None
+    last_report_status: Optional[str] = None
+    last_report_id: Optional[str] = None
+    num: Optional[int] = None
+    environment_name: Optional[str] = None
+    schedule_enable: Optional[bool] = None
+    schedule_cron: Optional[str] = None
+    next_trigger_time: Optional[datetime] = None
+    create_time: Optional[datetime] = None
+    update_time: Optional[datetime] = None
+
+    __table_args__ = (
+        UniqueConstraint("scenario_id", name="uq_probe_scenario_id"),
+    )
+

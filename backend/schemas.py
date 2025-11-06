@@ -88,3 +88,23 @@ class MSConfigOut(MSConfigBase):
     id: int
 
 
+
+class ProbeConfigOut(BaseModel):
+    id: int
+    project_ms_id: str
+    scenario_id: str
+    name: str
+    priority: Optional[str] = None
+    status: Optional[str] = None
+    step_total: Optional[int] = None
+    request_pass_rate: Optional[str] = None
+    last_report_status: Optional[str] = None
+    last_report_id: Optional[str] = None
+    num: Optional[int] = None
+    environment_name: Optional[str] = None
+    schedule_enable: Optional[bool] = None
+    schedule_cron: Optional[str] = None
+    next_trigger_time: Optional[datetime] = None
+    create_time: Optional[datetime] = None
+    update_time: Optional[datetime] = None
+
