@@ -36,6 +36,78 @@
       <a-descriptions-item label="更新时间">{{ fmtDatetime(probe?.update_time) }}</a-descriptions-item>
     </a-descriptions>
   </a-card>
+
+  <a-card title="拨测报告同步配置" style="margin-top:16px;">
+    <div v-if="!selectedMsId">
+      <a-alert type="info" message="请先选择项目后再配置同步" show-icon />
+    </div>
+    <template v-else>
+      <a-space direction="vertical" style="width:100%">
+        <a-space>
+          <a-switch v-model:checked="syncCfg.enabled" :loading="cfgLoading" />
+          <span>开启同步</span>
+          <a-button size="small" @click="saveCfg" :loading="cfgSaving">保存配置</a-button>
+          <a-button size="small" @click="runNow" :loading="runLoading">立即同步</a-button>
+          <a-button size="small" @click="openResults">查看结果</a-button>
+          <a-button size="small" @click="loadCfg" :loading="cfgLoading" :disabled="!selectedMsId">刷新</a-button>
+        </a-space>
+        <a-form layout="inline">
+          <a-form-item label="起始时间">
+            <a-date-picker v-model:value="syncCfg.start_time" valueFormat="YYYY-MM-DD HH:mm:ss" show-time style="width:220px" />
+          </a-form-item>
+          <a-form-item label="同步间隔(秒)">
+            <a-input-number v-model:value="syncCfg.interval_seconds" :min="30" :step="30" style="width:160px" />
+          </a-form-item>
+        </a-form>
+        <a-descriptions :column="3" bordered size="small" v-if="cfgOut">
+          <a-descriptions-item label="上次运行时间">{{ fmtDatetime(cfgOut.last_run_at) }}</a-descriptions-item>
+          <a-descriptions-item label="状态">{{ cfgOut.last_status || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="指针起始时间">{{ fmtDatetime(cfgOut.last_synced_start) }}</a-descriptions-item>
+          <a-descriptions-item label="错误">{{ cfgOut.last_error || '-' }}</a-descriptions-item>
+        </a-descriptions>
+      </a-space>
+    </template>
+  </a-card>
+
+  <a-modal v-model:open="resultsOpen" title="拨测结果" width="900px" :footer="null">
+    <a-space style="margin-bottom:8px;">
+      <a-select v-model:value="resultStatus" style="width:160px" allow-clear placeholder="状态过滤">
+        <a-select-option value="ERROR">ERROR</a-select-option>
+        <a-select-option value="SUCCESS">SUCCESS</a-select-option>
+        <a-select-option value="FAKE_ERROR">FAKE_ERROR</a-select-option>
+        <a-select-option value="PENDING">PENDING</a-select-option>
+      </a-select>
+      <a-button size="small" @click="loadResults">刷新</a-button>
+    </a-space>
+    <a-table :data-source="results" :loading="resultsLoading" :pagination="false" row-key="id" size="small">
+      <a-table-column title="名称" dataIndex="name" key="name" />
+      <a-table-column title="开始时间" key="start">
+        <template #default="{ record }">{{ fmtDatetime(record.start_time) }}</template>
+      </a-table-column>
+      <a-table-column title="耗时(ms)" dataIndex="request_duration_ms" key="dur" />
+      <a-table-column title="状态" dataIndex="status" key="status" />
+      <a-table-column title="错误数" dataIndex="error_count" key="ec" />
+      <a-table-column title="成功数" dataIndex="success_count" key="sc" />
+      <a-table-column title="原因标注" key="reason">
+        <template #default="{ record }">
+          <a-space>
+            <a-input v-model:value="record.reason_label" size="small" style="width:160px" />
+            <a-button size="small" type="link" @click="saveReason(record)">保存</a-button>
+          </a-space>
+        </template>
+      </a-table-column>
+    </a-table>
+    <div style="margin-top:8px; text-align:right;">
+      <a-pagination
+        :current="resultsPage"
+        :pageSize="resultsPageSize"
+        :total="resultsTotal"
+        @change="onResultsPage"
+        @showSizeChange="onResultsSize"
+        :showSizeChanger="true"
+      />
+    </div>
+  </a-modal>
 </template>
 
 <script setup>
@@ -50,9 +122,33 @@ const syncing = ref(false)
 const selectedMsId = ref('')
 const probe = ref(null)
 
+// sync config states
+const cfgLoading = ref(false)
+const cfgSaving = ref(false)
+const runLoading = ref(false)
+const cfgOut = ref(null)
+const syncCfg = ref({ enabled: false, start_time: undefined, interval_seconds: 300 })
+
+// results modal states
+const resultsOpen = ref(false)
+const resultsLoading = ref(false)
+const results = ref([])
+const resultsTotal = ref(0)
+const resultsPage = ref(1)
+const resultsPageSize = ref(10)
+const resultStatus = ref(undefined)
+
 function fmtDatetime(v) {
   if (!v) return '-'
-  try { return new Date(v).toLocaleString() } catch { return v }
+  try {
+    const str = typeof v === 'string' ? v : String(v)
+    const hasTz = /[zZ]|[+-]\d{2}:?\d{2}$/.test(str)
+    const iso = hasTz ? str : `${str}Z`
+    const d = new Date(iso)
+    return d.toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' })
+  } catch {
+    try { return new Date(v).toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) } catch { return String(v) }
+  }
 }
 
 function humanizeCron(expr) {
@@ -139,6 +235,7 @@ async function onSync() {
 onMounted(async () => {
   selectedMsId.value = await resolveSelectedMsId()
   if (selectedMsId.value) await loadData()
+  if (selectedMsId.value) await loadCfg()
 })
 
 async function resolveSelectedMsId() {
@@ -162,11 +259,104 @@ watch(
     selectedMsId.value = await resolveSelectedMsId()
     if (selectedMsId.value) {
       await loadData()
+      await loadCfg()
     } else {
       probe.value = null
+      cfgOut.value = null
     }
   }
 )
+
+async function loadCfg() {
+  if (!selectedMsId.value) return
+  cfgLoading.value = true
+  try {
+    const { data } = await axios.get('/probe/sync-config', { params: { project_ms_id: selectedMsId.value } })
+    cfgOut.value = data || null
+    if (cfgOut.value) {
+      syncCfg.value.enabled = !!cfgOut.value.enabled
+      syncCfg.value.start_time = cfgOut.value.start_time || (probe.value?.create_time || undefined)
+      syncCfg.value.interval_seconds = cfgOut.value.interval_seconds || 300
+    }
+  } finally {
+    cfgLoading.value = false
+  }
+}
+
+async function saveCfg() {
+  if (!selectedMsId.value) return
+  cfgSaving.value = true
+  try {
+    const payload = { project_ms_id: selectedMsId.value, ...syncCfg.value }
+    const { data } = await axios.post('/probe/sync-config', payload)
+    cfgOut.value = data
+    message.success('已保存同步配置')
+  } catch (e) {
+    message.error('保存失败')
+  } finally {
+    cfgSaving.value = false
+  }
+}
+
+async function runNow() {
+  if (!selectedMsId.value) return
+  runLoading.value = true
+  try {
+    await axios.post('/probe/sync/run-now', null, { params: { project_ms_id: selectedMsId.value } })
+    message.success('已触发同步')
+    await loadCfg()
+  } catch (e) {
+    message.error('触发失败')
+  } finally {
+    runLoading.value = false
+  }
+}
+
+function openResults() {
+  resultsOpen.value = true
+  resultsPage.value = 1
+  loadResults()
+}
+
+async function loadResults() {
+  if (!selectedMsId.value) return
+  resultsLoading.value = true
+  try {
+    const params = {
+      project_ms_id: selectedMsId.value,
+      current: resultsPage.value,
+      pageSize: resultsPageSize.value,
+    }
+    if (resultStatus.value) params.status = resultStatus.value
+    const { data } = await axios.get('/probe/results', { params })
+    results.value = data.list || []
+    resultsTotal.value = data.total || 0
+  } finally {
+    resultsLoading.value = false
+  }
+}
+
+async function onResultsPage(p, ps) {
+  resultsPage.value = p
+  resultsPageSize.value = ps
+  await loadResults()
+}
+
+async function onResultsSize(p, ps) {
+  resultsPage.value = p
+  resultsPageSize.value = ps
+  await loadResults()
+}
+
+async function saveReason(record) {
+  try {
+    const { data } = await axios.patch(`/probe/results/${record.id}`, null, { params: { reason_label: record.reason_label } })
+    Object.assign(record, data)
+    message.success('已保存原因标注')
+  } catch (e) {
+    message.error('保存原因失败')
+  }
+}
 </script>
 
 

@@ -68,3 +68,43 @@ class ProbeConfig(SQLModel, table=True):
         UniqueConstraint("scenario_id", name="uq_probe_scenario_id"),
     )
 
+
+
+class ProbeSyncConfig(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    project_ms_id: str = Field(sa_column=Column(String(64), nullable=False))
+    enabled: bool = True
+    # initial sync start datetime. If null, defaults to related probe's create_time
+    start_time: Optional[datetime] = None
+    # interval seconds between sync runs
+    interval_seconds: int = 300
+    # pointer: last synced start datetime
+    last_synced_start: Optional[datetime] = None
+    last_run_at: Optional[datetime] = None
+    last_status: Optional[str] = Field(default=None, sa_column=Column(String(32), nullable=True))
+    last_error: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    __table_args__ = (
+        UniqueConstraint("project_ms_id", name="uq_probe_sync_project"),
+    )
+
+
+class ProbeResult(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    project_ms_id: str = Field(sa_column=Column(String(64), nullable=False))
+    report_id: str = Field(sa_column=Column(String(64), nullable=False))
+    name: str = Field(sa_column=Column(String(255), nullable=False))
+    start_time: datetime
+    end_time: datetime
+    request_duration_ms: Optional[int] = None
+    status: Optional[str] = Field(default=None, sa_column=Column(String(32), nullable=True))
+    error_count: Optional[int] = None
+    success_count: Optional[int] = None
+    reason_label: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+    __table_args__ = (
+        UniqueConstraint("report_id", name="uq_probe_result_report_id"),
+    )

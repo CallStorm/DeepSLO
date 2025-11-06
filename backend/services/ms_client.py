@@ -2,7 +2,7 @@ import base64
 import time
 import uuid
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 
 from Crypto.Cipher import AES
 import requests
@@ -42,5 +42,66 @@ class MSClient:
         headers = build_headers(self.ak, self.sk)
         url = self.base_url.rstrip("/") + path
         return requests.post(url, json=json, headers=headers, timeout=30)
+
+    def fetch_scenario_reports(
+        self,
+        project_id: str,
+        start_time_ms: int,
+        end_time_ms: int,
+        page: int = 1,
+        page_size: int = 50,
+        status_in: Optional[List[str]] = None,
+        trigger_mode_in: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        if status_in is None:
+            status_in = ["ERROR", "SUCCESS", "FAKE_ERROR", "PENDING"]
+        if trigger_mode_in is None:
+            trigger_mode_in = ["SCHEDULE"]
+
+        payload = {
+            "current": page,
+            "pageSize": page_size,
+            "sort": {},
+            "keyword": "",
+            "viewId": "all_data",
+            "combineSearch": {
+                "searchMode": "AND",
+                "conditions": [
+                    {
+                        "operator": "CONTAINS",
+                        "customField": False,
+                        "name": "name",
+                        "customFieldType": "",
+                    },
+                    {
+                        "value": status_in,
+                        "operator": "IN",
+                        "customField": False,
+                        "name": "status",
+                        "customFieldType": "",
+                    },
+                    {
+                        "value": trigger_mode_in,
+                        "operator": "IN",
+                        "customField": False,
+                        "name": "triggerMode",
+                        "customFieldType": "",
+                    },
+                    {
+                        "value": [start_time_ms, end_time_ms],
+                        "operator": "BETWEEN",
+                        "customField": False,
+                        "name": "startTime",
+                        "customFieldType": "",
+                    },
+                ],
+            },
+            "projectId": str(project_id),
+            "moduleType": "API_SCENARIO_REPORT",
+            "filter": {"integrated": []},
+        }
+        resp = self.post("/api/report/scenario/page", json=payload)
+        resp.raise_for_status()
+        return resp.json()
 
 
