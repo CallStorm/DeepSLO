@@ -6,9 +6,11 @@ import axios from 'axios'
 
 import App from './App.vue'
 import router from './router'
+import { useAuthStore } from './stores/auth'
 
 const app = createApp(App)
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 app.use(router)
 app.use(Antd)
 
@@ -18,6 +20,20 @@ const storedToken = localStorage.getItem('token')
 if (storedToken) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
 }
+
+// Add response interceptor to handle 401 Unauthorized
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid, clear auth and redirect to login
+      const authStore = useAuthStore()
+      authStore.logout()
+      router.push('/login')
+    }
+    return Promise.reject(error)
+  }
+)
 
 app.mount('#app')
 
