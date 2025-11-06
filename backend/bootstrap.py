@@ -8,6 +8,7 @@ from .security import get_password_hash
 def create_db_and_tables() -> None:
     SQLModel.metadata.create_all(engine)
     _ensure_ai_model_name_column()
+    _ensure_probe_result_is_valid_column()
 
 
 def ensure_admin_user() -> None:
@@ -49,3 +50,21 @@ def _ensure_ai_model_name_column() -> None:
             conn.execute(text("ALTER TABLE `aimodel` ADD COLUMN `name` VARCHAR(255) NULL"))
             conn.commit()
 
+
+def _ensure_probe_result_is_valid_column() -> None:
+    """Ensure ProbeResult table has the 'is_valid' column (MySQL)."""
+    with engine.connect() as conn:
+        check_sql = text(
+            """
+            SELECT 1
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = :schema
+              AND TABLE_NAME = 'proberesult'
+              AND COLUMN_NAME = 'is_valid'
+            LIMIT 1
+            """
+        )
+        exists = conn.execute(check_sql, {"schema": MYSQL_DB}).scalar()
+        if not exists:
+            conn.execute(text("ALTER TABLE `proberesult` ADD COLUMN `is_valid` TINYINT(1) NOT NULL DEFAULT 1"))
+            conn.commit()

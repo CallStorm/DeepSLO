@@ -147,6 +147,7 @@ class ProbeResultOut(BaseModel):
     status: Optional[str] = None
     error_count: Optional[int] = None
     success_count: Optional[int] = None
+    is_valid: Optional[bool] = True
     reason_label: Optional[str] = None
     created_at: Optional[datetime] = None
 

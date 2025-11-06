@@ -247,6 +247,7 @@ def _upsert_result(session, project_ms_id: str, item: dict) -> None:
 def list_results(
     project_ms_id: str = Query(...),
     status: Optional[str] = Query(None),
+    is_valid: Optional[bool] = Query(None),
     current: int = Query(1, ge=1),
     pageSize: int = Query(10, ge=1, le=1000),
     _: str = Depends(get_current_user),
@@ -255,6 +256,8 @@ def list_results(
     stmt = select(ProbeResult).where(ProbeResult.project_ms_id == project_ms_id)
     if status:
         stmt = stmt.where(ProbeResult.status == status)
+    if is_valid is not None:
+        stmt = stmt.where(ProbeResult.is_valid == is_valid)
     total = len(session.exec(stmt).all())
     stmt = stmt.order_by(ProbeResult.start_time.desc()).offset((current - 1) * pageSize).limit(pageSize)
     rows = session.exec(stmt).all()
@@ -266,6 +269,7 @@ def list_results(
 def update_result_reason(
     result_id: int,
     reason_label: Optional[str] = None,
+    is_valid: Optional[bool] = None,
     __: str = Depends(get_current_user),
     session=Depends(get_session),
 ):
@@ -273,6 +277,8 @@ def update_result_reason(
     if rec is None:
         raise HTTPException(status_code=404, detail="Result not found")
     rec.reason_label = reason_label
+    if is_valid is not None:
+        rec.is_valid = is_valid
     session.add(rec)
     session.commit()
     session.refresh(rec)

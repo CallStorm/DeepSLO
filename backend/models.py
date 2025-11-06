@@ -102,6 +102,7 @@ class ProbeResult(SQLModel, table=True):
     status: Optional[str] = Field(default=None, sa_column=Column(String(32), nullable=True))
     error_count: Optional[int] = None
     success_count: Optional[int] = None
+    is_valid: bool = True
     reason_label: Optional[str] = None
     created_at: Optional[datetime] = None
 

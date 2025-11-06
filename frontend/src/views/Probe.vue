@@ -77,6 +77,10 @@
         <a-select-option value="FAKE_ERROR">FAKE_ERROR</a-select-option>
         <a-select-option value="PENDING">PENDING</a-select-option>
       </a-select>
+      <a-select v-model:value="resultValid" style="width:160px" allow-clear placeholder="有效性过滤">
+        <a-select-option :value="true">有效</a-select-option>
+        <a-select-option :value="false">无效</a-select-option>
+      </a-select>
       <a-button size="small" @click="loadResults">刷新</a-button>
     </a-space>
     <a-table :data-source="results" :loading="resultsLoading" :pagination="false" row-key="id" size="small">
@@ -88,6 +92,14 @@
       <a-table-column title="状态" dataIndex="status" key="status" />
       <a-table-column title="错误数" dataIndex="error_count" key="ec" />
       <a-table-column title="成功数" dataIndex="success_count" key="sc" />
+      <a-table-column title="有效性" key="valid">
+        <template #default="{ record }">
+          <a-select v-model:value="record.is_valid" size="small" style="width:100px">
+            <a-select-option :value="true">有效</a-select-option>
+            <a-select-option :value="false">无效</a-select-option>
+          </a-select>
+        </template>
+      </a-table-column>
       <a-table-column title="原因标注" key="reason">
         <template #default="{ record }">
           <a-space>
@@ -137,6 +149,7 @@ const resultsTotal = ref(0)
 const resultsPage = ref(1)
 const resultsPageSize = ref(10)
 const resultStatus = ref(undefined)
+const resultValid = ref(undefined)
 
 function fmtDatetime(v) {
   if (!v) return '-'
@@ -328,6 +341,7 @@ async function loadResults() {
       pageSize: resultsPageSize.value,
     }
     if (resultStatus.value) params.status = resultStatus.value
+    if (resultValid.value !== undefined) params.is_valid = resultValid.value
     const { data } = await axios.get('/probe/results', { params })
     results.value = data.list || []
     resultsTotal.value = data.total || 0
@@ -350,7 +364,7 @@ async function onResultsSize(p, ps) {
 
 async function saveReason(record) {
   try {
-    const { data } = await axios.patch(`/probe/results/${record.id}`, null, { params: { reason_label: record.reason_label } })
+    const { data } = await axios.patch(`/probe/results/${record.id}`, null, { params: { reason_label: record.reason_label, is_valid: record.is_valid } })
     Object.assign(record, data)
     message.success('已保存原因标注')
   } catch (e) {
