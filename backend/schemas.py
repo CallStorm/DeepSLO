@@ -157,3 +157,24 @@ class PaginatedProbeResults(BaseModel):
     total: int
     pageSize: int
     current: int
+
+
+class SLOConfigBase(BaseModel):
+    period_type: str  # "monthly" 或 "yearly"
+    target: float  # SLO目标值，如0.9999表示99.99%
+    metric_type: str = "probe"  # 指标类型，默认为拨测
+
+
+class SLOConfigCreate(SLOConfigBase):
+    pass
+
+
+class SLOConfigUpdate(BaseModel):
+    target: Optional[float] = None
+
+
+class SLOConfigOut(SLOConfigBase):
+    id: int
+    max_downtime_minutes: float  # 允许最大中断时间（分钟）
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None

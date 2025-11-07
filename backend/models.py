@@ -109,3 +109,21 @@ class ProbeResult(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("report_id", name="uq_probe_result_report_id"),
     )
+
+
+class SLOConfig(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    # 类型：monthly（月度）或 yearly（年度）
+    period_type: str = Field(sa_column=Column(String(20), nullable=False))
+    # SLO目标值，如0.9999表示99.99%
+    target: float = Field(nullable=False)
+    # 允许最大中断时间（分钟），根据period_type和target计算
+    max_downtime_minutes: float = Field(nullable=False)
+    # 指标类型，默认为拨测（probe）
+    metric_type: str = Field(default="probe", sa_column=Column(String(20), nullable=False))
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    __table_args__ = (
+        UniqueConstraint("period_type", name="uq_slo_config_period_type"),
+    )

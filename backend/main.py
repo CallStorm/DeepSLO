@@ -8,6 +8,7 @@ from .routers import ai_models as ai_models_router
 from .routers import config as config_router
 from .routers import probe as probe_router
 from .routers import report_sync as report_sync_router
+from .routers import slo_settings as slo_settings_router
 from .bootstrap import ensure_admin_user, create_db_and_tables
 from .services.sync_runner import start_background_sync_loop
 
@@ -35,7 +36,8 @@ app.include_router(projects_router.router, prefix="/system/projects", tags=["pro
 app.include_router(ai_models_router.router, prefix="/system/ai-models", tags=["ai-models"]) 
 app.include_router(config_router.router, prefix="/system/config", tags=["config"]) 
 app.include_router(probe_router.router, prefix="/probe", tags=["probe"]) 
-app.include_router(report_sync_router.router, prefix="/probe", tags=["probe-sync"]) 
+app.include_router(report_sync_router.router, prefix="/probe", tags=["probe-sync"])
+app.include_router(slo_settings_router.router, prefix="/slo/settings", tags=["slo-settings"]) 
 
 
 @app.get("/health")
