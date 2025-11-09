@@ -127,3 +127,29 @@ class SLOConfig(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("period_type", name="uq_slo_config_period_type"),
     )
+
+
+class SLORecord(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    # 项目ID
+    project_ms_id: str = Field(sa_column=Column(String(64), nullable=False, index=True))
+    # 周期类型：monthly（月度）或 yearly（年度）
+    period_type: str = Field(sa_column=Column(String(20), nullable=False))
+    # 周期值：月度如 "2025-11"，年度如 "2025"
+    period_value: str = Field(sa_column=Column(String(20), nullable=False, index=True))
+    # 累计中断时间（秒）
+    total_downtime_seconds: float = Field(default=0.0, nullable=False)
+    # SLO达成率（0-1之间）
+    achievement_rate: float = Field(default=1.0, nullable=False)
+    # 误差预算消耗率（0-1之间）
+    error_budget_consumption: float = Field(default=0.0, nullable=False)
+    # 最后计算时间
+    calculated_at: Optional[datetime] = None
+    # 创建时间
+    created_at: Optional[datetime] = None
+    # 更新时间
+    updated_at: Optional[datetime] = None
+
+    __table_args__ = (
+        UniqueConstraint("project_ms_id", "period_type", "period_value", name="uq_slo_record"),
+    )
