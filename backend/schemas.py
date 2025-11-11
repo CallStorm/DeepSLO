@@ -160,6 +160,7 @@ class PaginatedProbeResults(BaseModel):
 
 
 class SLOConfigBase(BaseModel):
+    project_ms_id: str  # 关联项目
     period_type: str  # "monthly" 或 "yearly"
     target: float  # SLO目标值，如0.9999表示99.99%
     metric_type: str = "probe"  # 指标类型，默认为拨测

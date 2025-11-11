@@ -134,11 +134,17 @@ def get_slo_dashboard(
     
     # 获取SLO配置
     monthly_config = session.exec(
-        select(SLOConfig).where(SLOConfig.period_type == "monthly")
+        select(SLOConfig).where(
+            SLOConfig.project_ms_id == project_ms_id,
+            SLOConfig.period_type == "monthly"
+        )
     ).first()
     
     yearly_config = session.exec(
-        select(SLOConfig).where(SLOConfig.period_type == "yearly")
+        select(SLOConfig).where(
+            SLOConfig.project_ms_id == project_ms_id,
+            SLOConfig.period_type == "yearly"
+        )
     ).first()
     
     # 计算全局状态
@@ -244,7 +250,10 @@ def get_slo_trend(
         
         # 获取配置
         config = session.exec(
-            select(SLOConfig).where(SLOConfig.period_type == "monthly")
+            select(SLOConfig).where(
+                SLOConfig.project_ms_id == project_ms_id,
+                SLOConfig.period_type == "monthly"
+            )
         ).first()
         
         if record:

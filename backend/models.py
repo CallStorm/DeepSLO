@@ -115,6 +115,8 @@ class SLOConfig(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     # 类型：monthly（月度）或 yearly（年度）
     period_type: str = Field(sa_column=Column(String(20), nullable=False))
+    # 项目ID（来自Metersphere，用于区分项目）
+    project_ms_id: str = Field(sa_column=Column(String(64), nullable=False, index=True))
     # SLO目标值，如0.9999表示99.99%
     target: float = Field(nullable=False)
     # 允许最大中断时间（分钟），根据period_type和target计算
@@ -125,7 +127,7 @@ class SLOConfig(SQLModel, table=True):
     updated_at: Optional[datetime] = None
 
     __table_args__ = (
-        UniqueConstraint("period_type", name="uq_slo_config_period_type"),
+        UniqueConstraint("project_ms_id", "period_type", name="uq_slo_config_project_period"),
     )
 
 

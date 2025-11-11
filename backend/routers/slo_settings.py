@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import select
 
 from ..db import get_session
@@ -37,9 +37,16 @@ def calculate_max_downtime_minutes(period_type: str, target: float) -> float:
 
 
 @router.get("/", response_model=List[SLOConfigOut])
-def list_slo_configs(_: User = Depends(get_current_user), session=Depends(get_session)):
-    """获取所有SLO配置"""
-    configs = session.exec(select(SLOConfig)).all()
+def list_slo_configs(
+    project_ms_id: str | None = Query(None, description="按项目过滤（Metersphere项目ID）"),
+    _: User = Depends(get_current_user),
+    session=Depends(get_session)
+):
+    """获取SLO配置，支持按项目过滤"""
+    stmt = select(SLOConfig)
+    if project_ms_id:
+        stmt = stmt.where(SLOConfig.project_ms_id == project_ms_id)
+    configs = session.exec(stmt).all()
     return [SLOConfigOut(**c.model_dump()) for c in configs]  # type: ignore[arg-type]
 
 
@@ -57,14 +64,17 @@ def create_slo_config(data: SLOConfigCreate, _: User = Depends(get_current_user)
     if not 0 < data.target < 1:
         raise HTTPException(status_code=400, detail="target must be between 0 and 1")
     
-    # 检查是否已存在相同类型的配置
+    # 检查是否已存在相同项目+类型的配置
     existing = session.exec(
-        select(SLOConfig).where(SLOConfig.period_type == data.period_type)
+        select(SLOConfig).where(
+            SLOConfig.project_ms_id == data.project_ms_id,
+            SLOConfig.period_type == data.period_type
+        )
     ).first()
     if existing:
         raise HTTPException(
             status_code=400,
-            detail=f"{'月度' if data.period_type == 'monthly' else '年度'}SLO配置已存在，请先删除或更新现有配置"
+            detail=f"项目 {data.project_ms_id} 的{'月度' if data.period_type == 'monthly' else '年度'}SLO配置已存在，请先删除或更新现有配置"
         )
     
     # 计算允许最大中断时间
@@ -72,6 +82,7 @@ def create_slo_config(data: SLOConfigCreate, _: User = Depends(get_current_user)
     
     # 创建配置
     config = SLOConfig(
+        project_ms_id=data.project_ms_id,
         period_type=data.period_type,
         target=data.target,
         metric_type=data.metric_type,

@@ -9,7 +9,7 @@
       <div class="project-switch" :class="{ collapsed }">
         <template v-if="!collapsed">
           <a-select
-            v-model:value="projStore.selectedProjectId"
+            v-model:value="selectedProjectId"
             style="width: 100%"
             :options="projectOptions"
             show-search
@@ -22,7 +22,7 @@
           <a-popover v-model:open="projectPopoverOpen" trigger="click" placement="right">
             <template #content>
               <a-select
-                v-model:value="projStore.selectedProjectId"
+                v-model:value="selectedProjectId"
                 style="width: 220px"
                 :options="projectOptions"
                 show-search
@@ -38,7 +38,15 @@
           </a-popover>
         </template>
       </div>
-        <a-menu theme="dark" mode="inline" :selectedKeys="[selectedKey]" @click="onMenu" :style="{ flex: 1, overflow: 'auto' }">
+        <a-menu 
+          theme="dark" 
+          mode="inline" 
+          :selectedKeys="[selectedKey]" 
+          :openKeys="openKeys"
+          @click="onMenu"
+          @openChange="onOpenChange"
+          :style="{ flex: 1, overflow: 'auto' }"
+        >
         <a-menu-item key="probe" :disabled="menuDisabled">
           <template #icon><dashboard-outlined /></template>
           拨测信息
@@ -149,8 +157,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import { useProjectStore } from './stores/projects'
 import {
@@ -175,11 +183,72 @@ import {
 import { Modal, message } from 'ant-design-vue'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const projStore = useProjectStore()
 
 const collapsed = ref(false)
-const selectedKey = ref('slo-screen')
+// 路由到菜单key的映射
+const routeToMenuKeyMap = {
+  '/': 'slo-screen', // 默认路由映射到 SLO大屏
+  '/probe': 'probe',
+  '/slo-screen': 'slo-screen',
+  '/slo-analysis': 'slo-analysis',
+  '/slo-settings': 'slo-settings',
+  '/system/users': 'sys-users',
+  '/system/projects': 'sys-projects',
+  '/system/ai-models': 'sys-ai',
+  '/system/metersphere': 'sys-ms',
+}
+
+// 根据当前路由获取菜单key
+function getMenuKeyFromRoute(path) {
+  return routeToMenuKeyMap[path] || null
+}
+
+// 菜单key到路由的映射
+const menuKeyToRouteMap = {
+  'probe': '/probe',
+  'slo-screen': '/slo-screen',
+  'slo-analysis': '/slo-analysis',
+  'slo-settings': '/slo-settings',
+  'sys-users': '/system/users',
+  'sys-projects': '/system/projects',
+  'sys-ai': '/system/ai-models',
+  'sys-ms': '/system/metersphere',
+}
+
+// 系统管理的菜单key列表
+const systemMenuKeys = ['sys-users', 'sys-projects', 'sys-ai', 'sys-ms']
+
+// 根据当前路由动态计算选中的菜单key
+const selectedKey = computed(() => {
+  return getMenuKeyFromRoute(route.path) || 'slo-screen'
+})
+
+// 系统管理菜单的展开状态
+const openKeys = ref([])
+
+// 监听路由变化，自动展开系统管理菜单（如果当前路由是系统管理的子菜单）
+watch(
+  () => route.path,
+  (newPath) => {
+    const menuKey = getMenuKeyFromRoute(newPath)
+    if (menuKey && systemMenuKeys.includes(menuKey)) {
+      // 如果当前路由是系统管理的子菜单，自动展开系统管理菜单
+      if (!openKeys.value.includes('system')) {
+        openKeys.value = ['system']
+      }
+    }
+  },
+  { immediate: true }
+)
+
+// 处理菜单展开/收起事件
+function onOpenChange(keys) {
+  openKeys.value = keys
+}
+
 // 使用项目选择作为启用菜单的条件
 const menuDisabled = computed(() => !projStore.selectedProjectId)
 const userMenuOpen = ref(false)
@@ -187,6 +256,14 @@ const userMenuOpen = ref(false)
 const me = computed(() => auth.user)
 const isAuthed = computed(() => auth.isAuthenticated)
 const projectOptions = computed(() => projStore.projects.map(p => ({ label: p.ms_name, value: p.id })))
+
+// 使用 computed 的 getter/setter 确保项目选择变化时保存到 localStorage
+const selectedProjectId = computed({
+  get: () => projStore.selectedProjectId,
+  set: (value) => {
+    projStore.setSelectedProject(value)
+  }
+})
 
 // 项目搜索过滤
 function filterProjectOption(input, option) {
@@ -198,18 +275,10 @@ function filterProjectOption(input, option) {
 const projectPopoverOpen = ref(false)
 
 function onMenu({ key }) {
-  selectedKey.value = key
-  const map = {
-    'probe': '/probe',
-    'slo-screen': '/slo-screen',
-    'slo-analysis': '/slo-analysis',
-    'slo-settings': '/slo-settings',
-    'sys-users': '/system/users',
-    'sys-projects': '/system/projects',
-    'sys-ai': '/system/ai-models',
-    'sys-ms': '/system/metersphere',
+  const targetRoute = menuKeyToRouteMap[key]
+  if (targetRoute) {
+    router.push(targetRoute)
   }
-  router.push(map[key] || '/')
 }
 
 function onUserMenu({ key }) {

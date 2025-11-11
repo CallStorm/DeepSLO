@@ -85,11 +85,13 @@
 import { onMounted, ref, reactive, computed } from 'vue'
 import axios from 'axios'
 import { message } from 'ant-design-vue'
+import { useProjectStore } from '../stores/projects'
 
 const configs = ref([])
 const modalOpen = ref(false)
 const editingId = ref(null)
 const calculatedDowntime = ref(null)
+const projectStore = useProjectStore()
 
 const form = reactive({
   period_type: null,
@@ -169,7 +171,9 @@ function onPeriodTypeChange() {
 // 加载SLO配置列表
 async function load() {
   try {
-    const { data } = await axios.get('/slo/settings')
+    const project = projectStore.projects.find(p => p.id === projectStore.selectedProjectId)
+    const params = project ? { project_ms_id: project.ms_id } : {}
+    const { data } = await axios.get('/slo/settings', { params })
     configs.value = data
   } catch (error) {
     console.error('加载SLO配置失败:', error)
@@ -232,7 +236,13 @@ async function submit() {
       message.success('更新成功')
     } else {
       // 创建
+      const project = projectStore.projects.find(p => p.id === projectStore.selectedProjectId)
+      if (!project) {
+        message.error('请先选择项目')
+        return
+      }
       await axios.post('/slo/settings', {
+        project_ms_id: project.ms_id,
         period_type: form.period_type,
         target: form.target,
         metric_type: form.metric_type

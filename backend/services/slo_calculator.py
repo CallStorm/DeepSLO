@@ -197,9 +197,12 @@ def calculate_slo_for_period(
     else:
         return None
     
-    # 获取SLO配置
+    # 获取SLO配置（按项目+周期）
     slo_config = session.exec(
-        select(SLOConfig).where(SLOConfig.period_type == period_type)
+        select(SLOConfig).where(
+            SLOConfig.project_ms_id == project_ms_id,
+            SLOConfig.period_type == period_type
+        )
     ).first()
     
     if not slo_config:
