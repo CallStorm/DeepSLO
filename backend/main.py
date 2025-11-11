@@ -10,6 +10,7 @@ from .routers import probe as probe_router
 from .routers import report_sync as report_sync_router
 from .routers import slo_settings as slo_settings_router
 from .routers import slo_screen as slo_screen_router
+from .routers import slo_analysis as slo_analysis_router
 from .bootstrap import ensure_admin_user, create_db_and_tables
 from .services.sync_runner import start_background_sync_loop
 from .services.slo_scheduler import start_slo_scheduler
@@ -41,7 +42,8 @@ app.include_router(config_router.router, prefix="/system/config", tags=["config"
 app.include_router(probe_router.router, prefix="/probe", tags=["probe"]) 
 app.include_router(report_sync_router.router, prefix="/probe", tags=["probe-sync"])
 app.include_router(slo_settings_router.router, prefix="/slo/settings", tags=["slo-settings"])
-app.include_router(slo_screen_router.router, prefix="/slo/screen", tags=["slo-screen"]) 
+app.include_router(slo_screen_router.router, prefix="/slo/screen", tags=["slo-screen"])
+app.include_router(slo_analysis_router.router, prefix="/slo/analysis", tags=["slo-analysis"]) 
 
 
 @app.get("/health")

@@ -16,7 +16,10 @@
     "ant-design-vue": "^4.2.5",
     "@ant-design/icons-vue": "^7.0.1",
     "echarts": "^5.5.1",
-    "dayjs": "^1.11.13"
+    "dayjs": "^1.11.13",
+    "jspdf": "^2.5.1",
+    "marked": "^11.1.1",
+    "html2canvas": "^1.4.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",
