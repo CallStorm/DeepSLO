@@ -43,7 +43,7 @@
                   class="rate-value"
                   :class="getRateClass(monthlyData.achievement_rate, monthlyData.target)"
                 >
-                  {{ formatPercent(monthlyData.achievement_rate) }}
+                  {{ formatAchievementRate(monthlyData.achievement_rate) }}
                 </span>
               </div>
               <div class="overview-item">
@@ -88,7 +88,7 @@
                   class="rate-value"
                   :class="getRateClass(yearlyData.achievement_rate, yearlyData.target)"
                 >
-                  {{ formatPercent(yearlyData.achievement_rate) }}
+                  {{ formatAchievementRate(yearlyData.achievement_rate) }}
                 </span>
               </div>
               <div class="overview-item">
@@ -310,6 +310,11 @@ function formatTarget(target) {
 function formatPercent(value) {
   if (value === null || value === undefined) return '-'
   return (value * 100).toFixed(2) + '%'
+}
+
+function formatAchievementRate(value) {
+  if (value === null || value === undefined) return '-'
+  return (value * 100).toFixed(4) + '%'
 }
 
 function formatDateTime(datetimeStr) {
