@@ -215,29 +215,14 @@ def calculate_slo_for_period(
         session, project_ms_id, start_time, calc_end_time
     )
     
-    # 计算周期总时间（秒）
-    # 如果周期还没结束，使用已过去的时间
-    if period_type == "monthly":
-        if now < end_time:
-            # 当前周期，使用已过去的时间
-            elapsed_seconds = (now - start_time).total_seconds()
-            total_seconds = max(elapsed_seconds, 1.0)  # 避免除以0
-        else:
-            # 已完成的周期，使用完整30天
-            total_seconds = 30 * 24 * 60 * 60
-    else:  # yearly
-        if now < end_time:
-            # 当前周期，使用已过去的时间
-            elapsed_seconds = (now - start_time).total_seconds()
-            total_seconds = max(elapsed_seconds, 1.0)  # 避免除以0
-        else:
-            # 已完成的周期，使用完整365天
-            total_seconds = 365 * 24 * 60 * 60
+    # 计算周期总时间（秒），始终使用完整周期时长，确保与SLO配置的误差预算一致
+    total_seconds = (end_time - start_time).total_seconds()
+    total_seconds = max(total_seconds, 1.0)
     
     # 计算SLO达成率
     # 可用时间 = 总时间 - 中断时间
-    available_seconds = total_seconds - total_downtime_seconds
-    achievement_rate = available_seconds / total_seconds if total_seconds > 0 else 1.0
+    available_seconds = max(total_seconds - total_downtime_seconds, 0.0)
+    achievement_rate = available_seconds / total_seconds
     
     # 计算误差预算消耗率
     # 误差预算 = 总时间 * (1 - SLO目标)
