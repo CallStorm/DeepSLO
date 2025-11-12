@@ -1,5 +1,5 @@
 <template>
-  <a-card title="metersphere 配置">
+  <a-card title="MeterSphere 配置">
     <a-space direction="vertical" style="width: 720px">
       <a-form :model="form" layout="vertical">
         <a-row :gutter="12">

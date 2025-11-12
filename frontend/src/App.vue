@@ -84,7 +84,7 @@
           </a-menu-item>
           <a-menu-item key="sys-ms">
             <template #icon><tool-outlined /></template>
-            metersphere配置
+            拨测配置
           </a-menu-item>
         </a-sub-menu>
         </a-menu>

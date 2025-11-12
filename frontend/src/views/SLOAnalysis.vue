@@ -19,25 +19,29 @@
           <div v-if="analysisData" class="info-grid">
             <!-- SLO配置 -->
             <a-card title="SLO配置" size="small" class="info-card">
-              <a-descriptions :column="1" size="small" bordered>
-                <a-descriptions-item label="月度SLO目标" v-if="analysisData.slo_config.monthly">
-                  {{ formatPercent(analysisData.slo_config.monthly.target) }}
-                </a-descriptions-item>
-                <a-descriptions-item label="月度最大中断时间" v-if="analysisData.slo_config.monthly">
-                  {{ analysisData.slo_config.monthly.max_downtime_minutes.toFixed(2) }} 分钟
-                </a-descriptions-item>
-                <a-descriptions-item label="年度SLO目标" v-if="analysisData.slo_config.yearly">
-                  {{ formatPercent(analysisData.slo_config.yearly.target) }}
-                </a-descriptions-item>
-                <a-descriptions-item label="年度最大中断时间" v-if="analysisData.slo_config.yearly">
-                  {{ analysisData.slo_config.yearly.max_downtime_minutes.toFixed(2) }} 分钟
-                </a-descriptions-item>
+              <a-descriptions :column="2" size="small" bordered>
+                <template v-if="analysisData.slo_config.monthly">
+                  <a-descriptions-item label="月度SLO目标">
+                    {{ formatPercent(analysisData.slo_config.monthly.target) }}
+                  </a-descriptions-item>
+                  <a-descriptions-item label="月度最大中断时间">
+                    {{ analysisData.slo_config.monthly.max_downtime_minutes.toFixed(2) }} 分钟
+                  </a-descriptions-item>
+                </template>
+                <template v-if="analysisData.slo_config.yearly">
+                  <a-descriptions-item label="年度SLO目标">
+                    {{ formatPercent(analysisData.slo_config.yearly.target) }}
+                  </a-descriptions-item>
+                  <a-descriptions-item label="年度最大中断时间">
+                    {{ analysisData.slo_config.yearly.max_downtime_minutes.toFixed(2) }} 分钟
+                  </a-descriptions-item>
+                </template>
               </a-descriptions>
             </a-card>
 
             <!-- 当前SLO值 -->
             <a-card title="当前SLO值" size="small" class="info-card">
-              <a-descriptions :column="1" size="small" bordered>
+              <a-descriptions :column="2" size="small" bordered>
                 <template v-if="analysisData.slo_current.monthly">
                   <a-descriptions-item label="月度周期">
                     {{ analysisData.slo_current.monthly.period_value }}
