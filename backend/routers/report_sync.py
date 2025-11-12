@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 from typing import Optional
 
@@ -61,18 +61,24 @@ def upsert_sync_config(
 ):
     cfg = session.exec(select(ProbeSyncConfig).where(ProbeSyncConfig.project_ms_id == payload.project_ms_id)).first()
     now = _dt_now()
+    # 确保start_time是naive UTC datetime（如果有时区信息，转换为UTC）
+    start_time_utc = payload.start_time
+    if start_time_utc is not None:
+        if start_time_utc.tzinfo is not None:
+            # 有时区信息，转换为UTC naive datetime
+            start_time_utc = start_time_utc.astimezone(timezone.utc).replace(tzinfo=None)
     if cfg is None:
         cfg = ProbeSyncConfig(
             project_ms_id=payload.project_ms_id,
             enabled=payload.enabled,
-            start_time=payload.start_time,
+            start_time=start_time_utc,
             interval_seconds=payload.interval_seconds,
             created_at=now,
             updated_at=now,
         )
     else:
         cfg.enabled = payload.enabled
-        cfg.start_time = payload.start_time
+        cfg.start_time = start_time_utc
         cfg.interval_seconds = payload.interval_seconds
         cfg.updated_at = now
     session.add(cfg)
@@ -108,7 +114,11 @@ def update_sync_config(
     if payload.enabled is not None:
         cfg.enabled = payload.enabled
     if payload.start_time is not None:
-        cfg.start_time = payload.start_time
+        # 确保start_time是naive UTC datetime（如果有时区信息，转换为UTC）
+        start_time_utc = payload.start_time
+        if start_time_utc.tzinfo is not None:
+            start_time_utc = start_time_utc.astimezone(timezone.utc).replace(tzinfo=None)
+        cfg.start_time = start_time_utc
     if payload.interval_seconds is not None:
         cfg.interval_seconds = payload.interval_seconds
     cfg.updated_at = _dt_now()

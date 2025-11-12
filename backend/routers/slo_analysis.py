@@ -1,7 +1,7 @@
 """
 SLO分析API路由
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from fastapi.responses import StreamingResponse
@@ -43,8 +43,8 @@ def get_slo_analysis_data(
     if not project:
         raise HTTPException(status_code=404, detail="项目不存在")
     
-    # 获取当前月和当前年
-    now = datetime.now()
+    # 获取当前月和当前年（使用UTC时间）
+    now = datetime.utcnow()
     current_month = f"{now.year}-{now.month:02d}"
     current_year = str(now.year)
     
@@ -92,6 +92,7 @@ def get_slo_analysis_data(
     ).first()
     
     # 获取当年有效拨测数量（is_valid=1，start_time范围是当年）
+    # 使用UTC时间创建日期对象（数据库存储的是UTC时间）
     year_start = datetime(now.year, 1, 1)
     year_end = datetime(now.year + 1, 1, 1)
     

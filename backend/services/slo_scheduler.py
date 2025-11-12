@@ -37,7 +37,7 @@ def start_slo_scheduler(interval_hours: int = 1) -> None:
                 print(f"Error in SLO scheduler loop: {e}")
             
             # 等待指定时间后再次执行
-            time.sleep(interval_hours * 3600)
+            time.sleep(interval_hours * 5)
     
     # 在后台线程中启动
     thread = threading.Thread(target=_loop, daemon=True)

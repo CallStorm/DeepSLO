@@ -61,7 +61,7 @@ def parse_cron_interval(cron_expr: str) -> Optional[float]:
     # 如果croniter可用，尝试使用它进行精确计算
     if HAS_CRONITER:
         try:
-            base_time = datetime.now()
+            base_time = datetime.utcnow()
             iter1 = croniter(cron_expr, base_time)
             next_time1 = iter1.get_next(datetime)
             next_time2 = iter1.get_next(datetime)
@@ -147,7 +147,7 @@ def calculate_downtime_for_project(
         if abs(time_diff - expected_interval) <= tolerance:
             # 连续失败，记录中断时间
             total_downtime += time_diff
-            i += 2  # 跳过下一项，因为已经计算过了
+            i += 1  
         else:
             i += 1
     
@@ -209,7 +209,7 @@ def calculate_slo_for_period(
         return None
     
     # 计算累计中断时间（只计算到当前时间）
-    now = datetime.now()
+    now = datetime.utcnow()
     calc_end_time = min(end_time, now)
     total_downtime_seconds = calculate_downtime_for_project(
         session, project_ms_id, start_time, calc_end_time
@@ -259,7 +259,7 @@ def calculate_slo_for_period(
         )
     ).first()
     
-    now = datetime.now()
+    now = datetime.utcnow()
     if slo_record:
         # 更新现有记录
         slo_record.total_downtime_seconds = total_downtime_seconds
@@ -292,7 +292,7 @@ def calculate_all_projects_slo(session: Session) -> None:
     计算所有项目的SLO（当前月和当前年）
     """
     projects = session.exec(select(Project)).all()
-    now = datetime.now()
+    now = datetime.utcnow()
     
     # 当前月
     current_month = f"{now.year}-{now.month:02d}"

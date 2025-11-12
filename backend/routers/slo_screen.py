@@ -49,8 +49,8 @@ def get_global_status(monthly_record: Optional[SLORecord], yearly_record: Option
     
     # 检查误差预算消耗速度
     if monthly_record and monthly_config:
-        # 计算剩余时间比例
-        now = datetime.now()
+        # 计算剩余时间比例（使用UTC时间）
+        now = datetime.utcnow()
         month_start = datetime(now.year, now.month, 1)
         if now.month == 12:
             month_end = datetime(now.year + 1, 1, 1)
@@ -66,7 +66,7 @@ def get_global_status(monthly_record: Optional[SLORecord], yearly_record: Option
             return "yellow"
     
     if yearly_record and yearly_config:
-        now = datetime.now()
+        now = datetime.utcnow()
         year_start = datetime(now.year, 1, 1)
         year_end = datetime(now.year + 1, 1, 1)
         
@@ -97,8 +97,8 @@ def get_slo_dashboard(
     if not project:
         raise HTTPException(status_code=404, detail="项目不存在")
     
-    # 获取当前月和当前年
-    now = datetime.now()
+    # 获取当前月和当前年（使用UTC时间）
+    now = datetime.utcnow()
     current_month = f"{now.year}-{now.month:02d}"
     current_year = str(now.year)
     
@@ -196,6 +196,7 @@ def get_slo_dashboard(
             "remaining_budget": 1.0 - (monthly_record.error_budget_consumption if monthly_record else 0.0),
             "remaining_time": monthly_remaining,
             "total_downtime_seconds": monthly_record.total_downtime_seconds if monthly_record else 0.0,
+            "max_downtime_minutes": monthly_config.max_downtime_minutes if monthly_config else None,
         },
         "yearly": {
             "period_value": current_year,
@@ -205,6 +206,7 @@ def get_slo_dashboard(
             "remaining_budget": 1.0 - (yearly_record.error_budget_consumption if yearly_record else 0.0),
             "remaining_time": yearly_remaining,
             "total_downtime_seconds": yearly_record.total_downtime_seconds if yearly_record else 0.0,
+            "max_downtime_minutes": yearly_config.max_downtime_minutes if yearly_config else None,
         },
     }
     
@@ -225,8 +227,8 @@ def get_slo_trend(
     if period_type != "monthly":
         raise HTTPException(status_code=400, detail="目前只支持月度趋势查询")
     
-    # 获取最近N个月的数据
-    now = datetime.now()
+    # 获取最近N个月的数据（使用UTC时间）
+    now = datetime.utcnow()
     trends = []
     
     for i in range(months - 1, -1, -1):
@@ -288,9 +290,9 @@ def get_slo_events(
     """
     获取SLO异常事件列表（拨测失败记录）
     """
-    # 默认查询最近7天
+    # 默认查询最近7天（使用UTC时间）
     if not end_time:
-        end_time = datetime.now()
+        end_time = datetime.utcnow()
     if not start_time:
         start_time = end_time - timedelta(days=7)
     

@@ -16,7 +16,7 @@ router = APIRouter()
 def _ms_ts_to_dt(value: Optional[int]) -> Optional[datetime]:
     if isinstance(value, (int, float)):
         try:
-            return datetime.fromtimestamp(int(value) / 1000)
+            return datetime.utcfromtimestamp(int(value) / 1000)
         except Exception:
             return None
     return None

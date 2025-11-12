@@ -22,28 +22,33 @@
       <div class="content-card status-card">
         <h2 class="card-title">核心状态</h2>
         <div class="status-content">
-          <div class="slo-item">
-            <div class="slo-label">SLO名称：拨测</div>
-            <div class="slo-targets">
-              <div class="target-item">
-                <span class="target-label">目标值（月度）：</span>
-                <span class="target-value">{{ formatTarget(monthlyData.target) }}</span>
-              </div>
-              <div class="target-item">
-                <span class="target-label">目标值（年度）：</span>
-                <span class="target-value">{{ formatTarget(yearlyData.target) }}</span>
-              </div>
-            </div>
-          </div>
-
           <!-- 月度SLO -->
           <div class="slo-period">
             <h3>本月（{{ monthlyData.period_value }}）</h3>
-            <div class="achievement-rate">
-              <span class="rate-label">当前周期达成率：</span>
-              <span class="rate-value" :class="getRateClass(monthlyData.achievement_rate, monthlyData.target)">
-                {{ formatPercent(monthlyData.achievement_rate) }}
-              </span>
+            <div class="period-overview">
+              <div class="overview-item">
+                <span class="overview-label">目标：</span>
+                <span class="overview-value">{{ formatTarget(monthlyData.target) }}</span>
+              </div>
+              <div class="overview-item">
+                <span class="overview-label">当前达成率：</span>
+                <span
+                  class="rate-value"
+                  :class="getRateClass(monthlyData.achievement_rate, monthlyData.target)"
+                >
+                  {{ formatPercent(monthlyData.achievement_rate) }}
+                </span>
+              </div>
+              <div class="overview-item">
+                <span class="overview-label">中断时间：</span>
+                <span class="overview-value">{{ formatDowntime(monthlyData.total_downtime_seconds) }}</span>
+                <span
+                  v-if="hasDowntimeBudget(monthlyData)"
+                  class="overview-sub-value"
+                >
+                  剩余：{{ formatRemainingDowntime(monthlyData.max_downtime_minutes, monthlyData.total_downtime_seconds) }}
+                </span>
+              </div>
             </div>
             <div class="error-budget">
               <div class="budget-header">
@@ -57,7 +62,7 @@
               />
               <div class="budget-footer">
                 <span>当月剩余预算：{{ formatPercent(monthlyData.remaining_budget) }}</span>
-                <span>周期剩余：{{ formatRemainingTime(monthlyData.remaining_time) }}</span>
+                <span>剩余时间：{{ formatRemainingDuration(monthlyData.remaining_time) }}</span>
               </div>
             </div>
           </div>
@@ -65,11 +70,30 @@
           <!-- 年度SLO -->
           <div class="slo-period">
             <h3>本年（{{ yearlyData.period_value }}）</h3>
-            <div class="achievement-rate">
-              <span class="rate-label">当前周期达成率：</span>
-              <span class="rate-value" :class="getRateClass(yearlyData.achievement_rate, yearlyData.target)">
-                {{ formatPercent(yearlyData.achievement_rate) }}
-              </span>
+            <div class="period-overview">
+              <div class="overview-item">
+                <span class="overview-label">目标：</span>
+                <span class="overview-value">{{ formatTarget(yearlyData.target) }}</span>
+              </div>
+              <div class="overview-item">
+                <span class="overview-label">当前达成率：</span>
+                <span
+                  class="rate-value"
+                  :class="getRateClass(yearlyData.achievement_rate, yearlyData.target)"
+                >
+                  {{ formatPercent(yearlyData.achievement_rate) }}
+                </span>
+              </div>
+              <div class="overview-item">
+                <span class="overview-label">中断时间：</span>
+                <span class="overview-value">{{ formatDowntime(yearlyData.total_downtime_seconds) }}</span>
+                <span
+                  v-if="hasDowntimeBudget(yearlyData)"
+                  class="overview-sub-value"
+                >
+                  剩余：{{ formatRemainingDowntime(yearlyData.max_downtime_minutes, yearlyData.total_downtime_seconds) }}
+                </span>
+              </div>
             </div>
             <div class="error-budget">
               <div class="budget-header">
@@ -83,7 +107,7 @@
               />
               <div class="budget-footer">
                 <span>年度剩余预算：{{ formatPercent(yearlyData.remaining_budget) }}</span>
-                <span>周期剩余：{{ formatRemainingTime(yearlyData.remaining_time) }}</span>
+                <span>剩余时间：{{ formatRemainingDuration(yearlyData.remaining_time) }}</span>
               </div>
             </div>
           </div>
@@ -216,6 +240,8 @@ const monthlyData = computed(() => {
     error_budget_consumption: 0.0,
     remaining_budget: 1.0,
     remaining_time: { days: 0, hours: 0, minutes: 0 },
+    total_downtime_seconds: 0,
+    max_downtime_minutes: null,
   }
 })
 
@@ -227,6 +253,8 @@ const yearlyData = computed(() => {
     error_budget_consumption: 0.0,
     remaining_budget: 1.0,
     remaining_time: { days: 0, hours: 0, minutes: 0 },
+    total_downtime_seconds: 0,
+    max_downtime_minutes: null,
   }
 })
 
@@ -255,13 +283,45 @@ function formatDateTime(datetimeStr) {
   return dayjs(datetimeStr).format('YYYY-MM-DD HH:mm:ss')
 }
 
-function formatRemainingTime(remaining) {
+function formatRemainingDuration(remaining) {
   if (!remaining) return '-'
-  const parts = []
-  if (remaining.days > 0) parts.push(`${remaining.days}天`)
-  if (remaining.hours > 0) parts.push(`${remaining.hours}小时`)
-  if (remaining.minutes > 0) parts.push(`${remaining.minutes}分钟`)
-  return parts.length > 0 ? parts.join(' ') : '0分钟'
+  const totalMinutes = (remaining.days || 0) * 1440 + (remaining.hours || 0) * 60 + (remaining.minutes || 0)
+  if (totalMinutes <= 0) return '0分钟'
+  if (totalMinutes < 1) return `${Math.round(totalMinutes * 60)}秒`
+  if (totalMinutes < 60) return `${Math.round(totalMinutes)}分钟`
+  const totalHours = totalMinutes / 60
+  if (totalHours < 24) return `${totalHours.toFixed(1)}小时`
+  const totalDays = totalHours / 24
+  return `${totalDays.toFixed(1)}天`
+}
+
+function formatDowntime(seconds) {
+  if (seconds === null || seconds === undefined) return '-'
+  if (seconds < 60) {
+    return `${seconds.toFixed(0)}秒`
+  }
+  const minutes = seconds / 60
+  return `${minutes.toFixed(2)}分钟`
+}
+
+function formatRemainingDowntime(maxMinutes, usedSeconds) {
+  if (
+    maxMinutes === null ||
+    maxMinutes === undefined ||
+    usedSeconds === null ||
+    usedSeconds === undefined
+  ) {
+    return '-'
+  }
+  const remainingSeconds = maxMinutes * 60 - usedSeconds
+  if (remainingSeconds <= 0) {
+    return '0分钟'
+  }
+  return formatDowntime(remainingSeconds)
+}
+
+function hasDowntimeBudget(data) {
+  return data.max_downtime_minutes !== null && data.max_downtime_minutes !== undefined
 }
 
 function getRateClass(rate, target) {
@@ -620,38 +680,6 @@ function handleResize() {
   gap: 20px;
 }
 
-.slo-item {
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e8e8e8;
-}
-
-.slo-label {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #1a1a1a;
-}
-
-.slo-targets {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.target-item {
-  display: flex;
-  gap: 8px;
-}
-
-.target-label {
-  color: #666;
-}
-
-.target-value {
-  font-weight: bold;
-  color: #1890ff;
-}
-
 .slo-period {
   padding: 16px;
   background: #f9f9f9;
@@ -664,19 +692,36 @@ function handleResize() {
   color: #1a1a1a;
 }
 
-.achievement-rate {
-  margin-bottom: 16px;
+.period-overview {
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.rate-label {
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
   color: #666;
 }
 
+.overview-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.overview-label {
+  color: #666;
+}
+
+.overview-value {
+  font-weight: bold;
+  color: #1a1a1a;
+}
+
+.overview-sub-value {
+  color: #1890ff;
+  font-weight: 500;
+}
+
 .rate-value {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
 }
 

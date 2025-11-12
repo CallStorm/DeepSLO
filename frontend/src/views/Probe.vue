@@ -155,12 +155,31 @@ function fmtDatetime(v) {
   if (!v) return '-'
   try {
     const str = typeof v === 'string' ? v : String(v)
+    // 后端返回的时间是UTC时间（没有时区信息），需要当作UTC处理
+    // 如果字符串已经有时区信息，直接使用；否则当作UTC时间处理
     const hasTz = /[zZ]|[+-]\d{2}:?\d{2}$/.test(str)
-    const iso = hasTz ? str : `${str}Z`
-    const d = new Date(iso)
+    let d
+    if (hasTz) {
+      d = new Date(str)
+    } else {
+      // 没有时区信息，假设是UTC时间（ISO格式：YYYY-MM-DDTHH:mm:ss 或 YYYY-MM-DD HH:mm:ss）
+      // 如果是ISO格式，直接加Z；否则尝试解析
+      if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}/.test(str)) {
+        d = new Date(str.replace(' ', 'T') + 'Z')
+      } else {
+        // 尝试直接解析
+        d = new Date(str)
+      }
+    }
+    // 转换为北京时间显示
     return d.toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' })
   } catch {
-    try { return new Date(v).toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' }) } catch { return String(v) }
+    try { 
+      const d = new Date(v)
+      return d.toLocaleString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' })
+    } catch { 
+      return String(v) 
+    }
   }
 }
 
@@ -288,7 +307,34 @@ async function loadCfg() {
     cfgOut.value = data || null
     if (cfgOut.value) {
       syncCfg.value.enabled = !!cfgOut.value.enabled
-      syncCfg.value.start_time = cfgOut.value.start_time || (probe.value?.create_time || undefined)
+      // 后端返回的start_time是UTC时间，需要转换为本地时间显示在日期选择器中
+      if (cfgOut.value.start_time) {
+        const utcStr = cfgOut.value.start_time.replace(' ', 'T') + 'Z'
+        const utcDate = new Date(utcStr)
+        // 转换为本地时间字符串（YYYY-MM-DD HH:mm:ss格式）
+        const year = utcDate.getFullYear()
+        const month = String(utcDate.getMonth() + 1).padStart(2, '0')
+        const day = String(utcDate.getDate()).padStart(2, '0')
+        const hour = String(utcDate.getHours()).padStart(2, '0')
+        const minute = String(utcDate.getMinutes()).padStart(2, '0')
+        const second = String(utcDate.getSeconds()).padStart(2, '0')
+        syncCfg.value.start_time = `${year}-${month}-${day} ${hour}:${minute}:${second}`
+      } else {
+        // 如果没有start_time，使用probe的create_time（也需要转换）
+        if (probe.value?.create_time) {
+          const utcStr = probe.value.create_time.replace(' ', 'T') + 'Z'
+          const utcDate = new Date(utcStr)
+          const year = utcDate.getFullYear()
+          const month = String(utcDate.getMonth() + 1).padStart(2, '0')
+          const day = String(utcDate.getDate()).padStart(2, '0')
+          const hour = String(utcDate.getHours()).padStart(2, '0')
+          const minute = String(utcDate.getMinutes()).padStart(2, '0')
+          const second = String(utcDate.getSeconds()).padStart(2, '0')
+          syncCfg.value.start_time = `${year}-${month}-${day} ${hour}:${minute}:${second}`
+        } else {
+          syncCfg.value.start_time = undefined
+        }
+      }
       syncCfg.value.interval_seconds = cfgOut.value.interval_seconds || 300
     }
   } finally {
@@ -301,6 +347,15 @@ async function saveCfg() {
   cfgSaving.value = true
   try {
     const payload = { project_ms_id: selectedMsId.value, ...syncCfg.value }
+    // 如果start_time存在，需要将本地时间转换为UTC时间
+    if (payload.start_time) {
+      // start_time是用户选择的本地时间（格式：YYYY-MM-DD HH:mm:ss）
+      // 需要转换为UTC时间发送给后端
+      // 创建一个本地时间的Date对象
+      const localDate = new Date(payload.start_time.replace(' ', 'T'))
+      // 转换为UTC时间的ISO字符串（带Z标记，表示UTC）
+      payload.start_time = localDate.toISOString()
+    }
     const { data } = await axios.post('/probe/sync-config', payload)
     cfgOut.value = data
     message.success('已保存同步配置')

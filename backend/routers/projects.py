@@ -54,7 +54,7 @@ def sync_projects(_: User = Depends(require_admin), session=Depends(get_session)
         ms_createtime = None
         if isinstance(create_ts, (int, float)):
             try:
-                ms_createtime = datetime.fromtimestamp(int(create_ts) / 1000)
+                ms_createtime = datetime.utcfromtimestamp(int(create_ts) / 1000)
             except Exception:
                 ms_createtime = None
 

@@ -87,8 +87,8 @@ def create_slo_config(data: SLOConfigCreate, _: User = Depends(get_current_user)
         target=data.target,
         metric_type=data.metric_type,
         max_downtime_minutes=max_downtime_minutes,
-        created_at=datetime.now(),
-        updated_at=datetime.now(),
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow(),
     )
     session.add(config)
     session.commit()
@@ -114,7 +114,7 @@ def update_slo_config(
             raise HTTPException(status_code=400, detail="target must be between 0 and 1")
         config.target = data.target
         config.max_downtime_minutes = calculate_max_downtime_minutes(config.period_type, data.target)
-        config.updated_at = datetime.now()
+        config.updated_at = datetime.utcnow()
     
     session.add(config)
     session.commit()
