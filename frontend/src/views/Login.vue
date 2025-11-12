@@ -38,7 +38,7 @@ async function onFinish() {
   loading.value = true
   try {
     await auth.login(form.username, form.password)
-    router.push('/')
+    router.push('/slo-screen')
   } finally {
     loading.value = false
   }
