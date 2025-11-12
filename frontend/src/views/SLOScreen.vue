@@ -564,13 +564,17 @@ function renderTrendChart() {
 }
 
 // 监听项目变化
-watch(() => projectStore.selectedProjectId, (newVal) => {
-  if (newVal) {
-    loadDashboard()
-    loadTrend()
-    loadEvents()
-  }
-})
+watch(
+  () => [projectStore.selectedProjectId, projectStore.projects.length],
+  ([selectedId, projectCount]) => {
+    if (selectedId && projectCount > 0) {
+      loadDashboard()
+      loadTrend()
+      loadEvents()
+    }
+  },
+  { immediate: true }
+)
 
 // 生命周期
 onMounted(async () => {
