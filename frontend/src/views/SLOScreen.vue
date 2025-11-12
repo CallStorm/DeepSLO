@@ -7,10 +7,17 @@
         <div class="update-time">数据更新于：{{ lastUpdated }}</div>
       </div>
       <div class="header-right">
-        <div class="status-indicator" :class="`status-${globalStatus}`">
+        <div class="status-indicator" :class="`status-${monthlyStatus}`">
           <div class="status-light"></div>
           <div class="status-text">
-            {{ statusText }}
+            月度（{{ monthlyData.period_value || '—' }}）：{{ monthlyStatusText }}
+          </div>
+        </div>
+        <div style="width: 12px;"></div>
+        <div class="status-indicator" :class="`status-${yearlyStatus}`">
+          <div class="status-light"></div>
+          <div class="status-text">
+            年度（{{ yearlyData.period_value || '—' }}）：{{ yearlyStatusText }}
           </div>
         </div>
       </div>
@@ -265,6 +272,33 @@ const statusText = computed(() => {
     red: '不健康',
   }
   return statusMap[globalStatus.value] || '未知'
+})
+
+// 头部 - 月度/年度健康度状态
+const monthlyStatus = computed(() => {
+  const c = monthlyData.value?.error_budget_consumption
+  if (c === null || c === undefined) return 'green'
+  if (c >= 1.0) return 'red'
+  if (c >= 0.8) return 'yellow'
+  return 'green'
+})
+
+const yearlyStatus = computed(() => {
+  const c = yearlyData.value?.error_budget_consumption
+  if (c === null || c === undefined) return 'green'
+  if (c >= 1.0) return 'red'
+  if (c >= 0.8) return 'yellow'
+  return 'green'
+})
+
+const monthlyStatusText = computed(() => {
+  const map = { green: '健康', yellow: '有风险', red: '不健康' }
+  return map[monthlyStatus.value]
+})
+
+const yearlyStatusText = computed(() => {
+  const map = { green: '健康', yellow: '有风险', red: '不健康' }
+  return map[yearlyStatus.value]
 })
 
 // 格式化函数
@@ -585,6 +619,12 @@ function handleResize() {
 
 .header-left {
   flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .screen-title {
