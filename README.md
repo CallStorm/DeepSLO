@@ -126,7 +126,7 @@ git push origin feature/your-feature
 ## 🆘 Support & Community
 
 - Issues: [GitHub Issues](https://github.com/CallStorm/DeepSLO/issues)
-- 邮箱：support@callstorm.io
+- 邮箱：510908220@qq.com
 - 社区与更多文档：建设中，欢迎在 Issue 中反馈诉求
 
 ---
