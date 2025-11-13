@@ -4,6 +4,7 @@ sqlmodel==0.0.22
 SQLAlchemy==2.0.35
 pydantic==2.9.2
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 python-jose[cryptography]==3.3.0
 PyMySQL==1.1.1
 requests==2.32.3
