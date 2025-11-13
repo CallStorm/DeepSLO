@@ -43,8 +43,8 @@ DeepSLO 让团队能够快速回答：
 
 ## 🚀 Installation
 
-> ⚠️ **首次部署前准备：**  
-> - MySQL 8+ 并创建 `deepslo` 数据库  
+> ⚠️ **本地开发：**  
+> - MySQL 8+ 并创建 `deepslo` 数据库 ，可以看下`db.py`里的配置；
 > - Python 3.11+  
 > - Node.js 18+ / npm 9+
 
@@ -56,17 +56,14 @@ DeepSLO 让团队能够快速回答：
 
 2. 配置后端
    ```bash
-   cd backend
-   python -m venv .venv
-   .\.venv\Scripts\activate  # Windows
+   cd DeepSLO
    pip install -r requirements.txt
-   cp .env.example .env      # 按需创建并补齐数据库 & AI 配置
    uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
 3. 启动前端
    ```bash
-   cd ../frontend
+   cd frontend
    npm install
    npm run dev  # 默认运行在 http://localhost:5173
    ```
