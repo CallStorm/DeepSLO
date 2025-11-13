@@ -36,7 +36,7 @@ def create_ms_config(data: MSConfigCreate, _: User = Depends(require_admin), ses
         session.commit()
         return MSConfigOut.model_validate(existing, from_attributes=True)
 
-    cfg = MSConfig(**data.model_dump(), active=True)
+    cfg = MSConfig(**data.model_dump(exclude={"active"}), active=True)
     session.add(cfg)
     session.commit()
     session.refresh(cfg)
