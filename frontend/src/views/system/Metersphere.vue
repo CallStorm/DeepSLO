@@ -19,6 +19,17 @@
             </a-form-item>
           </a-col>
         </a-row>
+        <a-row :gutter="12">
+          <a-col :span="6">
+            <a-form-item label="Active">
+              <a-switch
+                v-model:checked="form.active"
+                checked-children="启用"
+                un-checked-children="停用"
+              />
+            </a-form-item>
+          </a-col>
+        </a-row>
         <a-space>
           <a-button type="primary" @click="save">保存</a-button>
           <a-button @click="load">刷新</a-button>
@@ -32,7 +43,7 @@
 import { reactive, onMounted } from 'vue'
 import axios from 'axios'
 
-const form = reactive({ id: null, url: '', ak: '', sk: '' })
+const form = reactive({ id: null, url: '', ak: '', sk: '', active: true })
 
 async function load() {
   const { data } = await axios.get('/system/config/metersphere')
@@ -42,16 +53,18 @@ async function load() {
     form.url = first.url || ''
     form.ak = first.ak || ''
     form.sk = first.sk || ''
+    form.active = typeof first.active === 'boolean' ? first.active : true
   } else {
     form.id = null
     form.url = ''
     form.ak = ''
     form.sk = ''
+    form.active = true
   }
 }
 
 async function save() {
-  const payload = { url: form.url, ak: form.ak, sk: form.sk }
+  const payload = { url: form.url, ak: form.ak, sk: form.sk, active: form.active }
   await axios.put('/system/config/metersphere', payload)
   await load()
 }
