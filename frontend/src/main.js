@@ -15,9 +15,23 @@ app.use(router)
 app.use(Antd)
 
 // Configure API base URL and restore auth header on reload
-// 在 Docker 环境中，前端和后端在同一个容器，使用相对路径
+// 在Docker生产环境中，nginx会代理API请求，使用相对路径（空字符串）
 // 在开发环境中，使用环境变量或默认值
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8000' : '')
+let apiBaseURL = ''
+if (import.meta.env.PROD) {
+    // 生产环境：如果nginx代理API，使用相对路径
+    // 否则使用运行时配置或构建时环境变量
+    if (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__.VITE_API_BASE_URL) {
+        apiBaseURL = window.__ENV__.VITE_API_BASE_URL
+    } else if (import.meta.env.VITE_API_BASE_URL) {
+        apiBaseURL = import.meta.env.VITE_API_BASE_URL
+    }
+    // 如果nginx代理了API，apiBaseURL保持为空字符串（相对路径）
+} else {
+    // 开发环境
+    apiBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+}
+axios.defaults.baseURL = apiBaseURL
 const storedToken = localStorage.getItem('token')
 if (storedToken) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`

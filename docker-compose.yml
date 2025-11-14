@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # MySQL数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: deepslo-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: deepslo
+      MYSQL_USER: deepslo
+      MYSQL_PASSWORD: deepslo
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-mysql.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - deepslo-network
+
+  # 后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: deepslo-backend
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: deepslo
+      MYSQL_PASSWORD: deepslo
+      MYSQL_DB: deepslo
+    ports:
+      - "8000:8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - deepslo-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # 构建时环境变量（如果需要）
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    container_name: deepslo-frontend
+    restart: unless-stopped
+    environment:
+      # 运行时环境变量（如果需要nginx不代理，而是直接访问后端）
+      # 如果nginx代理了API（默认情况），则不需要设置此变量
+      # VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - deepslo-network
+
+networks:
+  deepslo-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+
