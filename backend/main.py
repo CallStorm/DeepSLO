@@ -2,8 +2,7 @@ import os
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+
 
 from .routers import auth as auth_router
 from .routers import users as users_router
@@ -53,27 +52,5 @@ app.include_router(slo_analysis_router.router, prefix="/slo/analysis", tags=["sl
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
-
-# 静态文件服务（用于提供前端构建产物）
-# 注意：这个路由必须放在所有 API 路由之后
-static_dir = Path(__file__).parent.parent / "static"
-if static_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
-    
-    # 提供前端 SPA 的 index.html（支持 Vue Router history 模式）
-    # 这个通配路由会捕获所有未匹配的路径，用于前端路由
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        # 检查请求的文件是否存在
-        file_path = static_dir / full_path
-        if file_path.exists() and file_path.is_file():
-            return FileResponse(str(file_path))
-        
-        # 否则返回 index.html（用于 Vue Router）
-        index_path = static_dir / "index.html"
-        if index_path.exists():
-            return FileResponse(str(index_path))
-        
-        return {"error": "Not found"}
 
 
