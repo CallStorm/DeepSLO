@@ -38,7 +38,7 @@ services:
       MYSQL_PASSWORD: deepslo
       MYSQL_DB: deepslo
     ports:
-      - "8000:8000"
+      - "8006:8000"
     depends_on:
       mysql:
         condition: service_healthy
@@ -64,9 +64,9 @@ services:
     environment:
       # 运行时环境变量（如果需要nginx不代理，而是直接访问后端）
       # 如果nginx代理了API（默认情况），则不需要设置此变量
-      # VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+      VITE_API_BASE_URL: "http://10.73.2.13:8006"
     ports:
-      - "80:80"
+      - "8005:80"
     depends_on:
       backend:
         condition: service_healthy
