@@ -2,10 +2,10 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select
 
-from ..db import get_session
-from ..deps import require_admin, get_current_user
-from ..models import AIModel, User
-from ..schemas import AIModelCreate, AIModelUpdate, AIModelOut
+from db import get_session
+from deps import require_admin, get_current_user
+from models import AIModel, User
+from schemas import AIModelCreate, AIModelUpdate, AIModelOut
 
 
 router = APIRouter()

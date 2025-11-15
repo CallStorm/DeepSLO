@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Tuple
 from sqlmodel import Session, select
 
-from ..models import ProbeResult, ProbeConfig, SLOConfig, SLORecord, Project
+from models import ProbeResult, ProbeConfig, SLOConfig, SLORecord, Project
 
 try:
     from croniter import croniter

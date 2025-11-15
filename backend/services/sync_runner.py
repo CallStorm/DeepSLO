@@ -5,9 +5,9 @@ from typing import Optional
 
 from sqlmodel import Session, select
 
-from ..db import engine
-from ..models import ProbeSyncConfig, ProbeResult, MSConfig, ProbeConfig
-from .ms_client import MSClient
+from db import engine
+from models import ProbeSyncConfig, ProbeResult, MSConfig, ProbeConfig
+from services.ms_client import MSClient
 
 
 def _now_ms() -> int:

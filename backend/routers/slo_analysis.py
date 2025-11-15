@@ -9,13 +9,13 @@ from pydantic import BaseModel
 from sqlmodel import Session, select, func, and_
 import json
 
-from ..db import get_session
-from ..deps import get_current_user
-from ..models import (
+from db import get_session
+from deps import get_current_user
+from models import (
     User, Project, SLORecord, SLOConfig, ProbeResult
 )
-from ..services.slo_calculator import calculate_slo_for_period
-from ..services.ai_service import stream_ai_analysis
+from services.slo_calculator import calculate_slo_for_period
+from services.ai_service import stream_ai_analysis
 
 
 class ChatRequest(BaseModel):

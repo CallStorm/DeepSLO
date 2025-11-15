@@ -4,9 +4,9 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from sqlmodel import select
 
-from .db import get_session
-from .models import User
-from .security import SECRET_KEY, ALGORITHM
+from db import get_session
+from models import User
+from security import SECRET_KEY, ALGORITHM
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")

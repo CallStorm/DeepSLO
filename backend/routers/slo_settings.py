@@ -3,10 +3,10 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import select
 
-from ..db import get_session
-from ..deps import get_current_user
-from ..models import SLOConfig, User
-from ..schemas import SLOConfigCreate, SLOConfigOut, SLOConfigUpdate
+from db import get_session
+from deps import get_current_user
+from models import SLOConfig, User
+from schemas import SLOConfigCreate, SLOConfigOut, SLOConfigUpdate
 
 
 router = APIRouter()

@@ -7,7 +7,7 @@ from typing import Optional, Generator
 from sqlmodel import Session, select
 import httpx
 
-from ..models import AIModel
+from models import AIModel
 
 
 def get_default_ai_model(session: Session) -> Optional[AIModel]:

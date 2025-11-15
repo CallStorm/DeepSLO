@@ -7,8 +7,8 @@ import time
 from datetime import datetime, timedelta
 from sqlmodel import Session
 
-from ..db import get_session
-from .slo_calculator import calculate_all_projects_slo
+from db import get_session
+from services.slo_calculator import calculate_all_projects_slo
 
 
 def _run_slo_calculation() -> None:

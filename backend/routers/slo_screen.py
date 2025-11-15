@@ -6,14 +6,14 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select, func, and_, or_
 
-from ..db import get_session
-from ..deps import get_current_user
-from ..models import (
+from db import get_session
+from deps import get_current_user
+from models import (
     User, Project, SLORecord, SLOConfig, ProbeResult, 
     ProbeConfig
 )
-from ..schemas import ProjectOut
-from ..services.slo_calculator import calculate_slo_for_period
+from schemas import ProjectOut
+from services.slo_calculator import calculate_slo_for_period
 
 
 router = APIRouter()

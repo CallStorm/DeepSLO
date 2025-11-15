@@ -24,8 +24,10 @@ COPY . .
 # 暴露端口
 EXPOSE 8000
 
+# 设置PYTHONPATH，使所有模块都能使用绝对导入
+ENV PYTHONPATH=/app
+
 # 启动命令
-# main.py使用相对导入，需要作为Python模块运行
-# 由于代码在/app目录下，直接使用main:app即可
+# main.py使用绝对导入，PYTHONPATH设置为/app后可以直接使用
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 

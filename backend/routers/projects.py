@@ -3,11 +3,11 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select
 
-from ..db import get_session
-from ..deps import get_current_user, require_admin
-from ..models import Project, MSConfig, User
-from ..schemas import ProjectOut
-from ..services.ms_client import MSClient
+from db import get_session
+from deps import get_current_user, require_admin
+from models import Project, MSConfig, User
+from schemas import ProjectOut
+from services.ms_client import MSClient
 
 
 router = APIRouter()

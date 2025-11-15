@@ -2,11 +2,11 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select
 
-from ..db import get_session
-from ..deps import require_admin
-from ..models import User
-from ..schemas import UserCreate, UserOut, UserUpdate
-from ..security import get_password_hash
+from db import get_session
+from deps import require_admin
+from models import User
+from schemas import UserCreate, UserOut, UserUpdate
+from security import get_password_hash
 
 
 router = APIRouter()

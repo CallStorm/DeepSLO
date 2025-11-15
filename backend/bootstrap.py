@@ -1,8 +1,8 @@
 from sqlmodel import SQLModel, Session
 from sqlalchemy import text
-from .db import engine, MYSQL_DB
-from .models import User
-from .security import get_password_hash
+from db import engine, MYSQL_DB
+from models import User
+from security import get_password_hash
 
 
 def create_db_and_tables() -> None:

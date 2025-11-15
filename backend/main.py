@@ -4,19 +4,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 
-from .routers import auth as auth_router
-from .routers import users as users_router
-from .routers import projects as projects_router
-from .routers import ai_models as ai_models_router
-from .routers import config as config_router
-from .routers import probe as probe_router
-from .routers import report_sync as report_sync_router
-from .routers import slo_settings as slo_settings_router
-from .routers import slo_screen as slo_screen_router
-from .routers import slo_analysis as slo_analysis_router
-from .bootstrap import ensure_admin_user, create_db_and_tables
-from .services.sync_runner import start_background_sync_loop
-from .services.slo_scheduler import start_slo_scheduler
+from routers import auth as auth_router
+from routers import users as users_router
+from routers import projects as projects_router
+from routers import ai_models as ai_models_router
+from routers import config as config_router
+from routers import probe as probe_router
+from routers import report_sync as report_sync_router
+from routers import slo_settings as slo_settings_router
+from routers import slo_screen as slo_screen_router
+from routers import slo_analysis as slo_analysis_router
+from bootstrap import ensure_admin_user, create_db_and_tables
+from services.sync_runner import start_background_sync_loop
+from services.slo_scheduler import start_slo_scheduler
 
 app = FastAPI(title="DeepSLO API", version="0.1.0")
 
