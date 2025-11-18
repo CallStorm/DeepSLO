@@ -76,26 +76,15 @@ DeepSLO 让团队能够快速回答：
 
 ## 🐳 Docker Support
 
-- Docker Compose 样例正在完善中，欢迎提交 PR 或查看 `deploy/` 目录（更新中）。
+1. 克隆仓库并初始化环境
+   ```bash
+   git clone https://github.com/CallStorm/DeepSLO.git
+   cd DeepSLO
+   ```
+2. 执行`docker-compose up -d`
+3. 浏览器访问前端地址，使用默认账户 `admin / admin` 登录（请立即修改密码）。
 
----
 
-## 🔧 Local Development
-
-```bash
-# 后端单元测试（示例）
-cd backend
-pytest
-
-# 前端代码质量检查
-cd ../frontend
-npm run build
-```
-
-- 开发阶段建议开启 uvicorn `--reload`，前端使用 Vite HMR 获取实时反馈。
-- 若需要调试 AI 流式输出，可在浏览器控制台观察 `/slo/analysis/chat` SSE。
-
----
 
 ## 🧭 Roadmap Highlights
 
@@ -107,6 +96,11 @@ npm run build
 - 📝 Grafana / Prometheus 指标输出
 
 ---
+
+## Quickstart
+> 下面演示下如何使用
+
+
 
 ## 🤝 Contributing
 
