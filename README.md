@@ -53,22 +53,24 @@ DeepSLO 让团队能够快速回答：
    git clone https://github.com/CallStorm/DeepSLO.git
    cd DeepSLO
    ```
-
-2. 配置后端
+2. 数据库配置
+   修改`db.py`文件里数据库信息，创建`deepslo`数据库
+   
+4. 配置后端
    ```bash
    cd DeepSLO
    pip install -r requirements.txt
-   uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+   uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-3. 启动前端
+5. 启动前端
    ```bash
    cd frontend
    npm install
    npm run dev  # 默认运行在 http://localhost:5173
    ```
 
-4. 浏览器访问前端地址，使用默认账户 `admin / admin` 登录（请立即修改密码）。
+6. 浏览器访问前端地址，使用默认账户 `admin / admin` 登录（请立即修改密码）。
 
 ---
 
