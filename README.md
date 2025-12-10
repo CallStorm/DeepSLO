@@ -81,6 +81,7 @@ DeepSLO 让团队能够快速回答：
    git clone https://github.com/CallStorm/DeepSLO.git
    cd DeepSLO
    ```
+2. 修改`docker-compose.yml`里 VITE_API_BASE_URL: "http://ip:8006"
 2. 执行`docker-compose up -d`
 3. 浏览器访问前端地址，使用默认账户 `admin / admin` 登录（请立即修改密码）。
 
@@ -99,6 +100,26 @@ DeepSLO 让团队能够快速回答：
 
 ## Quickstart
 > 下面演示下如何使用
+
+### MeterSphere 准备
+
+#### 部署
+MeterSphere 是开源持续测试平台，作为我们SLO数据的源头。
+
+部署参考 https://github.com/metersphere/metersphere
+```
+docker run -d -p 8081:8081 --name=metersphere -v ~/.metersphere/data:/opt/metersphere/data metersphere/metersphere-ce-allinone
+
+# 用户名: admin
+# 密码: metersphere
+```
+
+#### 创建拨测
+
+1. 创建个项目，比如是某个产品名字
+2. 创建个场景
+- 场景名称： 拨测
+- 步骤： 根据实际填写，调用相关接口
 
 
 
