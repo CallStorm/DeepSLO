@@ -26,9 +26,7 @@ services:
 
   # 后端服务
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: fallshere/deepslo:backend-latest
     container_name: deepslo-backend
     restart: unless-stopped
     environment:
@@ -53,12 +51,7 @@ services:
 
   # 前端服务
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        # 构建时环境变量（如果需要）
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    image: fallshere/deepslo:frontend-latest
     container_name: deepslo-frontend
     restart: unless-stopped
     environment:
