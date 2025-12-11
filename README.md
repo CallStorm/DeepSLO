@@ -87,16 +87,6 @@ DeepSLO 让团队能够快速回答：
 
 
 
-## 🧭 Roadmap Highlights
-
-- ✅ MeterSphere 拨测报告增量同步
-- ✅ 月度 / 年度 SLO 自动计算
-- ✅ AI 驱动的 SLO 智能分析与报告导出
-- 🚧 自定义阈值预警与通知通道
-- 🚧 Docker 一键部署脚本
-- 📝 Grafana / Prometheus 指标输出
-
----
 
 ## Quickstart
 > 下面演示下如何使用
@@ -135,7 +125,7 @@ deepslo需要对接MeterSphere的接口，所以需要先复制下接口信息�
 ### Deepslo 准备
 
 1. 设置MeterSphere接口信息
-   - 打开deepslo前端，点击`系统配置`->`拨测配置`
+   - 打开deepslo前端，默认名密码`admin/admin`,点击`系统配置`->`拨测配置`
    - 填写MeterSphere的`URL`、`AK`、`SK`
    - 点击`保存`
 ![](images/set-ak-sk.png)
