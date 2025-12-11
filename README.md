@@ -120,25 +120,64 @@ docker run -d -p 8081:8081 --name=metersphere -v ~/.metersphere/data:/opt/meters
 2. 创建个场景
 - 场景名称： 拨测
 - 步骤： 根据实际填写，调用相关接口
+![](images/boce.png)
+3. 设置定时任务(让场景定时跑，达到拨测的效果)
+![](images/cron.png)
+
+#### 复制接口信息
+
+deepslo需要对接MeterSphere的接口，所以需要先复制下接口信息。
+![](images/meter-usercenter.png)
+![](images/meter-aksk.png)
+将sk、sk信息复制下来
 
 
+### Deepslo 准备
 
-## 🤝 Contributing
+1. 设置MeterSphere接口信息
+   - 打开deepslo前端，点击`系统配置`->`拨测配置`
+   - 填写MeterSphere的`URL`、`AK`、`SK`
+   - 点击`保存`
+![](images/set-ak-sk.png)
 
-欢迎贡献新功能与修复！
+2. 设置模型
+   - 点击`系统配置`->`AI模型配置`
+   - 添加模型
+   - 点击`保存`
+![](images/set-model.png)
 
-```bash
-# Fork 后克隆
-git checkout -b feature/your-feature
+3. 同步项目管理
+   - 点击`系统配置`->`项目管理`
+   - 点击`同步 metersphere 项目`
+   - 等待同步完成,会将MeterSphere的项目同步到deepslo的项目管理中
+![](images/sync-project.png)
 
-# 提交变更
-git commit -m "feat: add your feature"
-git push origin feature/your-feature
-```
+4. SLO 配置
+   - 点击`SLO配置`
+   - 新增SLO
+   - 点击`保存`
+![](images/add_slo.png)
+![](images/slo.png)
+5. 拨测配置
+   - 点击`拨测信息`->`同步拨测信息`，会将MeterSphere的拨测场景同步到deepslo的拨测管理中
+   ![](images/sync-boce.png)
+   - 下方有`拨测报告同步配置`, 可以选择同步拨测起始时间，不选择则会选取拨测创建的时间。 开启同步配置，点击`保存配置`
+   ![](images/set-sync.png)
+   - 可以点击`查看结果`
+   ![](images/sync-report.png)
+6. SLO大屏
+   - 点击`SLO大屏`
+   - 可以查看当前项目的SLO达成率、误差预算、拨测趋势、关联事件等
+   ![](images/slo-dashboard.png)
 
-随后在 GitHub 上创建 Pull Request 并说明背景与测试情况。
+7. SLO分析
+   - 点击`SLO分析`
+   - 可以查看当前项目的SLO分析结果
+   ![](images/slo-analysis.png)
+   - 可以导出报告 
+   ![](images/pdf-report.png)
 
----
+
 
 ## 🆘 Support & Community
 
@@ -152,8 +191,3 @@ git push origin feature/your-feature
 
 本项目基于 MIT License 发布，详情参见 [LICENSE](LICENSE)。
 
----
-
-## 🙏 Support Development
-
-项目仍在早期迭代阶段，如需商务合作或定制支持，请联系 `510908220@qq.com`。
